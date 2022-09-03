@@ -7,7 +7,7 @@ fun main() {
     document.body!!.appendChild(container)
 
     val welcome = QM.create {
-        minTermInput = "0,3,4,7"
+        minTermInput = "0,2,3,6,7,8,10,12,13"
     }
     createRoot(container).render(welcome)
 }

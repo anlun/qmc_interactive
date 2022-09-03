@@ -2,16 +2,15 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class QMlogicTests {
-    val range = 0..7
-    val m = range.map { MinTerm3.fromInt(it) }
+    val m = MinTerm4.range.map { MinTerm4.fromInt(it) }
     @Test
     fun m0rep() {
-        assertEquals("000", m[0].toString())
+        assertEquals("0000", m[0].toString())
     }
 
     @Test
     fun m4rep() {
-        assertEquals("100", m[4].toString())
+        assertEquals("0100", m[4].toString())
     }
 
     @Test
@@ -31,7 +30,12 @@ class QMlogicTests {
 
     @Test
     fun m0m1Ceq() {
-        assertEquals(false, m[0]?.C == m[1]?.C)
+        assertEquals(true, m[0]?.C == m[1]?.C)
+    }
+
+    @Test
+    fun m0m1Deq() {
+        assertEquals(false, m[0]?.D == m[1]?.D)
     }
 
     @Test
@@ -41,6 +45,6 @@ class QMlogicTests {
 
     @Test
     fun m0m1combine() {
-        assertEquals(MinTerm3(Signal.Zero, Signal.Zero, Signal.Dash), m[0]?.combine(m[1]))
+        assertEquals(MinTerm4(Signal.Zero, Signal.Zero, Signal.Zero, Signal.Dash), m[0]?.combine(m[1]))
     }
 }

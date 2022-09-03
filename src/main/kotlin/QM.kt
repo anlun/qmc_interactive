@@ -10,7 +10,6 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
 import react.useState
 
-val domainRange = 0..7
 external interface QMProps : Props {
     var minTermInput: String
     var minTermList: List<Int>
@@ -18,27 +17,20 @@ external interface QMProps : Props {
 }
 fun Boolean.toSymbol() : String =
     if (this) "1" else "0"
-fun String.toDomainRange() : Int? =
-    when (this) {
-        "0" -> 0
-        "1" -> 1
-        "2" -> 2
-        "3" -> 3
-        "4" -> 4
-        "5" -> 5
-        "6" -> 6
-        "7" -> 7
-        else -> null
-    }
-fun Int.toMinTerm3String() : String = MinTerm3.fromInt(this).toString()
-fun Int.minTerm3Ones() : Int = toMinTerm3String().count { it == '1' }
+fun String.toDomainRange() : Int? {
+    val v = this.toInt()
+    if (v !in MinTerm4.range) return null
+    return v
+}
+fun Int.toMinTerm4String() : String = MinTerm4.fromInt(this).toString()
+fun Int.minTerm4Ones() : Int = toMinTerm4String().count { it == '1' }
 
 val QM = FC<QMProps> { props ->
     var minTermInput by useState(props.minTermInput)
     var minTermList by useState(props.minTermList)
     var qmStarted by useState(props.qmStarted)
     div {
-        +"f(A, B, C) = Σ m("
+        +"f(${MinTerm4.argString}) = Σ m("
         if (!qmStarted) {
             input {
                 type = InputType.text
@@ -69,7 +61,7 @@ val QM = FC<QMProps> { props ->
             table {
                 td {
                     tr { +"N" }
-                    domainRange.forEach {
+                    MinTerm4.range.forEach {
                         tr {
                             +it.toString()
                         }
@@ -77,15 +69,15 @@ val QM = FC<QMProps> { props ->
                 }
                 td {
                     tr { +"Binary N" }
-                    domainRange.forEach {
+                    MinTerm4.range.forEach {
                         tr {
-                            +it.toMinTerm3String()
+                            +it.toMinTerm4String()
                         }
                     }
                 }
                 td {
                     tr { +"f(N)" }
-                    domainRange.forEach {
+                    MinTerm4.range.forEach {
                         tr {
                             +minTermList.contains(it).toSymbol()
                         }
@@ -95,7 +87,7 @@ val QM = FC<QMProps> { props ->
             div {}
             hr {}
             +"MinTerms"
-            val oneSortedMinTermList = minTermList.sortedBy { it.minTerm3Ones() }
+            val oneSortedMinTermList = minTermList.sortedBy { it.minTerm4Ones() }
             table {
                 td {
                     tr { +"N" }
@@ -109,7 +101,7 @@ val QM = FC<QMProps> { props ->
                     tr { +"Binary N" }
                     oneSortedMinTermList.forEach {
                         tr {
-                            +it.toMinTerm3String()
+                            +it.toMinTerm4String()
                         }
                     }
                 }
@@ -119,8 +111,8 @@ val QM = FC<QMProps> { props ->
                         oneSortedMinTermList
                             .flatMap { i1 ->
                                 oneSortedMinTermList.mapNotNull { i2 ->
-                                    if (i1 > i2) return@mapNotNull null
-                                    MinTerm3.fromInt(i1)?.combine(MinTerm3.fromInt(i2))
+                                    if (i1 >= i2) return@mapNotNull null
+                                    MinTerm4.fromInt(i1)?.combine(MinTerm4.fromInt(i2))
                                 }
                             }
                             .distinct()
