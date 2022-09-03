@@ -41,16 +41,17 @@ class MinTerm3(
         }
     }
 
-    fun distance(other : MinTerm3) : Int {
+    fun distance(other : MinTerm3?) : Int {
+        if (other == null) return size
         var result = 0
-        if (this.A == other.A) { result += 1 }
-        if (this.B == other.B) { result += 1 }
-        if (this.C == other.C) { result += 1 }
+        if (this.A != other.A) { result += 1 }
+        if (this.B != other.B) { result += 1 }
+        if (this.C != other.C) { result += 1 }
         return result
     }
 
-    fun combine(other : MinTerm3) : MinTerm3? {
-        if (this.distance(other) != 1) return null
+    fun combine(other : MinTerm3?) : MinTerm3? {
+        if (other == null || this.distance(other) != 1) return null
         return MinTerm3(this.A.combine(other.A)
                       , this.B.combine(other.B)
                       , this.C.combine(other.C)
@@ -58,20 +59,25 @@ class MinTerm3(
     }
 
     override fun toString(): String {
-        return this.A.toString() + this.B.toString() + this.C.toString()
+        return A.toString() + B.toString() + C.toString()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is MinTerm3) return false
+        return this.A == other.A && this.B == other.B && this.C == other.C
     }
 }
 
 class State3 ( val oneInts      : List<Int>
-                   , val minTermList  : List<MinTerm3>? = null
-                   , val curMinTermToMerge  : Int? = null
-                   , val nextMinTermToMerge : Int? = null
-                   , val mergedMinTerms1 : List<MinTerm3>? = null
-                   )
+             , val minTermList  : List<MinTerm3>? = null
+             , val curMinTermToMerge  : Int? = null
+             , val nextMinTermToMerge : Int? = null
+             , val mergedMinTerms1 : List<MinTerm3>? = null
+             )
 {
     companion object {
         fun intToMinTerm3list(l : List<Int>) : List<MinTerm3> =
-            l.map { MinTerm3.fromInt(it) }.filterNotNull()
+            l.mapNotNull { MinTerm3.fromInt(it) }
     }
 
     private fun checkState() {
@@ -96,12 +102,4 @@ class State3 ( val oneInts      : List<Int>
         newState?.checkState()
         return newState
     }
-}
-
-fun main(args: Array<String>) {
-    println("Hello World!")
-
-    // Try adding program arguments via Run/Debug configuration.
-    // Learn more about running applications: https://www.jetbrains.com/help/idea/running-applications.html.
-    println("Program arguments: ${args.joinToString()}")
 }

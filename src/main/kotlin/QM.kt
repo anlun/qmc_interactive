@@ -30,6 +30,8 @@ fun String.toDomainRange() : Int? =
         "7" -> 7
         else -> null
     }
+fun Int.toMinTerm3String() : String = MinTerm3.fromInt(this).toString()
+fun Int.minTerm3Ones() : Int = toMinTerm3String().count { it == '1' }
 
 val QM = FC<QMProps> { props ->
     var minTermInput by useState(props.minTermInput)
@@ -77,7 +79,7 @@ val QM = FC<QMProps> { props ->
                     tr { +"Binary N" }
                     domainRange.forEach {
                         tr {
-                            +MinTerm3.fromInt(it).toString()
+                            +it.toMinTerm3String()
                         }
                     }
                 }
@@ -93,10 +95,11 @@ val QM = FC<QMProps> { props ->
             div {}
             hr {}
             +"MinTerms"
+            val oneSortedMinTermList = minTermList.sortedBy { it.minTerm3Ones() }
             table {
                 td {
                     tr { +"N" }
-                    minTermList.forEach {
+                    oneSortedMinTermList.forEach {
                         tr {
                             +it.toString()
                         }
@@ -104,9 +107,26 @@ val QM = FC<QMProps> { props ->
                 }
                 td {
                     tr { +"Binary N" }
-                    minTermList.forEach {
+                    oneSortedMinTermList.forEach {
                         tr {
-                            +MinTerm3.fromInt(it).toString()
+                            +it.toMinTerm3String()
+                        }
+                    }
+                }
+                td {
+                    tr { +"Combine 1" }
+                    val combine1list =
+                        oneSortedMinTermList
+                            .flatMap { i1 ->
+                                oneSortedMinTermList.mapNotNull { i2 ->
+                                    if (i1 > i2) return@mapNotNull null
+                                    MinTerm3.fromInt(i1)?.combine(MinTerm3.fromInt(i2))
+                                }
+                            }
+                            .distinct()
+                    combine1list.forEach {
+                        tr {
+                            +it.toString()
                         }
                     }
                 }
