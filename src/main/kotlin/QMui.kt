@@ -12,12 +12,13 @@ import react.dom.html.ReactHTML.tr
 import react.useState
 
 sealed class QMuiState {
-    object INPUT : QMuiState()
+    object INPUT            : QMuiState()
     object SHOWED_BIN_TABLE : QMuiState()
-    object FINAL : QMuiState()
+    object SHOWED_MINTERMS  : QMuiState()
+    object FINAL            : QMuiState()
 
     companion object {
-        private val orderList = listOf(INPUT, SHOWED_BIN_TABLE, FINAL)
+        private val orderList = listOf(INPUT, SHOWED_BIN_TABLE, SHOWED_MINTERMS, FINAL)
     }
 
     fun orderIndex() : Int = orderList.indexOf(this)
@@ -89,11 +90,11 @@ val qmUI = FC<QMprops> { props ->
             button {
                 +"Show minterms"
                 onClick = {
-                    qmUiState = QMuiState.FINAL
+                    qmUiState = QMuiState.SHOWED_MINTERMS
                 }
             }
         }
-        if (qmUiState.ge(QMuiState.FINAL)) {
+        if (qmUiState.ge(QMuiState.SHOWED_MINTERMS)) {
             div {}
             hr {}
             +"MinTerms"
@@ -114,6 +115,15 @@ val qmUI = FC<QMprops> { props ->
                         }
                     }
                 }
+                if (qmUiState == QMuiState.SHOWED_MINTERMS) {
+                    button {
+                        +"Show merged minterms"
+                        onClick = {
+                            qmUiState = QMuiState.FINAL
+                        }
+                    }
+                }
+
                 fun columnForCombineList(s : String, l : List<MinTerm4>) =
                     td {
                         tr { +s }
@@ -123,10 +133,12 @@ val qmUI = FC<QMprops> { props ->
                             }
                         }
                     }
-                columnForCombineList("Combine 1", qmTable.combine1List)
-                columnForCombineList("Combine 2", qmTable.combine2List)
-                columnForCombineList("Combine 3", qmTable.combine3List)
-                columnForCombineList("Combine 4", qmTable.combine4List)
+                if (qmUiState.ge(QMuiState.FINAL)) {
+                    columnForCombineList("Combine 1", qmTable.combine1List)
+                    columnForCombineList("Combine 2", qmTable.combine2List)
+                    columnForCombineList("Combine 3", qmTable.combine3List)
+                    columnForCombineList("Combine 4", qmTable.combine4List)
+                }
             }
         }
     }
