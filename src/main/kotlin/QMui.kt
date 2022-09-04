@@ -79,11 +79,11 @@ val qmUI = FC<QMprops> { props ->
     fun createTable(header : List<String>, columns : List<List<String>>) {
         val emptyCellString = ""
         fun longestColumnSize() : Int {
-            var max_size = 0
+            var maxSize = 0
             columns.forEach { column ->
-                max_size = kotlin.math.max(max_size, column.size)
+                maxSize = kotlin.math.max(maxSize, column.size)
             }
-            return max_size
+            return maxSize
         }
         table {
             thead {
@@ -123,7 +123,7 @@ val qmUI = FC<QMprops> { props ->
         )
 
     }
-    fun createMinTermsBlock_new() {
+    fun createMinTermsBlock() {
         val header = listOf("N", "Binary N") +
                 if (qmUiState.getField(QMuiState.COMBINED_MINTERMS)) {
                     (1..4).flatMap {
@@ -159,13 +159,13 @@ val qmUI = FC<QMprops> { props ->
     fun createPrimeImplicantsBlock() {
         +"Prime Implicants: "
         qmTable.primeImplicants.forEach {
-            +(it.toString() + ", ")
+            +("$it, ")
         }
     }
     fun createPrimeImplTableBlock() {
         val headerList: List<String> =
             listOf("Prime Minterms", "Prime Implicants", "Repr.") +
-                    qmTable.minTermList.map { "m${it.toString()}" }
+                    qmTable.minTermList.map { "m${it}" }
         val columns: List<List<String>> =
             listOf(qmTable.primeImplicants.map { it.toString() },
                 qmTable.primeImplicants.map { it.toABCD() },
@@ -201,7 +201,7 @@ val qmUI = FC<QMprops> { props ->
             createTruthTableBlock()
         }
         if (qmUiState.getField(QMuiState.MINTERMS)) {
-            createMinTermsBlock_new()
+            createMinTermsBlock()
         }
     }
     if (qmUiState.getField(QMuiState.PRIME_IMPL)) {
