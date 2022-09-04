@@ -1,6 +1,7 @@
 import react.FC
 import react.Props
 import react.dom.html.InputType
+import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr
@@ -18,19 +19,26 @@ external interface QMProps : Props {
 fun Boolean.toSymbol() : String =
     if (this) "1" else "0"
 fun String.toDomainRange() : Int? {
-    val v = this.toInt()
-    if (v !in MinTerm4.range) return null
-    return v
+    try {
+        val v = this.toInt()
+        if (v !in MinTerm4.range) return null
+        return v
+    } catch (e : NumberFormatException) {
+        return null
+    }
+
 }
 fun Int.toMinTerm4String() : String = MinTerm4.fromInt(this).toString()
 fun Int.minTerm4Ones() : Int = toMinTerm4String().count { it == '1' }
 
 val QM = FC<QMProps> { props ->
     var minTermInput by useState(props.minTermInput)
-    var minTermList by useState(props.minTermList)
-    var qmStarted by useState(props.qmStarted)
+    var minTermList  by useState(props.minTermList)
+    var qmStarted    by useState(props.qmStarted)
     div {
-        +"f(${MinTerm4.argString}) = Σ m("
+        +"f("
+        b { +MinTerm4.argString }
+        +") = Σ m("
         if (!qmStarted) {
             input {
                 type = InputType.text
