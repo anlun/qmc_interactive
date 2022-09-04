@@ -24,29 +24,38 @@ class QMuiState(var show_truth_table       : Boolean
                 , var show_prime_impl_table  : Boolean
                    )
 {
-    fun getField(s : String) : Boolean =
-        when (s) {
-            "truth table" -> show_truth_table
-            "minterms" -> show_minterms
-            "combined minterms" -> show_combined_minterms
-            "minterms repr" -> show_minterms_repr
-            "prime impl" -> show_prime_impl
-            "prime impl table" -> show_prime_impl_table
+    companion object {
+        const val TRUTH_TABLE = 0
+        const val MINTERMS = 1
+        const val COMBINED_MINTERMS = 2
+        const val MINTERMS_REPR = 3
+        const val PRIME_IMPL = 4
+        const val PRIME_IMPL_TABLE = 5
+    }
+
+    fun getField(i : Int) : Boolean =
+        when (i) {
+            TRUTH_TABLE -> show_truth_table
+            MINTERMS -> show_minterms
+            COMBINED_MINTERMS -> show_combined_minterms
+            MINTERMS_REPR -> show_minterms_repr
+            PRIME_IMPL -> show_prime_impl
+            PRIME_IMPL_TABLE -> show_prime_impl_table
             else -> false
         }
-    fun updateField(s : String, new_value : Boolean) : QMuiState =
-        when (s) {
-            "truth table" ->
+    fun updateField(i : Int, new_value : Boolean) : QMuiState =
+        when (i) {
+            TRUTH_TABLE ->
                 QMuiState(new_value, show_minterms, show_combined_minterms, show_minterms_repr, show_prime_impl, show_prime_impl_table)
-            "minterms" ->
+            MINTERMS ->
                 QMuiState(show_truth_table, new_value, show_combined_minterms, show_minterms_repr, show_prime_impl, show_prime_impl_table)
-            "combined minterms" ->
+            COMBINED_MINTERMS ->
                 QMuiState(show_truth_table, show_minterms, new_value, show_minterms_repr, show_prime_impl, show_prime_impl_table)
-            "minterms repr" ->
+            MINTERMS_REPR ->
                 QMuiState(show_truth_table, show_minterms, show_combined_minterms, new_value, show_prime_impl, show_prime_impl_table)
-            "prime impl" ->
+            PRIME_IMPL ->
                 QMuiState(show_truth_table, show_minterms, show_combined_minterms, show_minterms_repr, new_value, show_prime_impl_table)
-            "prime impl table" ->
+            PRIME_IMPL_TABLE ->
                 QMuiState(show_truth_table, show_minterms, show_combined_minterms, show_minterms_repr, show_prime_impl, new_value)
             else -> this
         }
@@ -69,7 +78,7 @@ val qmUI = FC<QMprops> { props ->
 //        }
 //        br {}
 //    }
-    fun createStateCheckbox(text : String, stateComponent : String) {
+    fun createStateCheckbox(text : String, stateComponent : Int) {
         input {
             type = InputType.checkbox
             checked = qmUiState.getField(stateComponent)
@@ -214,12 +223,12 @@ val qmUI = FC<QMprops> { props ->
         }
     }
 
-    createStateCheckbox("Step 1. Show the truth table of f", "truth table")
-    createStateCheckbox("Step 2. Show minterms", "minterms")
-    createStateCheckbox("Step 3. Show combined minterms", "combined minterms")
-    createStateCheckbox("Step 4. Show minterms representatives", "minterms repr")
-    createStateCheckbox("Step 5. Show prime implicants", "prime impl")
-    createStateCheckbox("Step 6. Show prime implicant table", "prime impl table")
+    createStateCheckbox("Step 1. Show the truth table of f", QMuiState.TRUTH_TABLE)
+    createStateCheckbox("Step 2. Show minterms", QMuiState.MINTERMS)
+    createStateCheckbox("Step 3. Show combined minterms", QMuiState.COMBINED_MINTERMS)
+    createStateCheckbox("Step 4. Show minterms representatives", QMuiState.MINTERMS_REPR)
+    createStateCheckbox("Step 5. Show prime implicants", QMuiState.PRIME_IMPL)
+    createStateCheckbox("Step 6. Show prime implicant table", QMuiState.PRIME_IMPL_TABLE)
     br {}
     createInputBlock()
     br {}
