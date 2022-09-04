@@ -56,6 +56,8 @@ class MinTerm4(
         val range = 0 until size
         const val argString = "A, B, C, D"
 
+        val defaultValue = MinTerm4(Signal.Dash, Signal.Dash, Signal.Dash, Signal.Dash)
+
         fun fromInt(v : Int) : MinTerm4? {
             if (v !in range) return null
             val a = Signal.fromInt((v / 8) % 2) ?: return null
@@ -148,4 +150,19 @@ class QMtable(val minTermInput : String) {
     val combine2List : List<MinTerm4> = combineListWithItself(combine1List)
     val combine3List : List<MinTerm4> = combineListWithItself(combine2List)
     val combine4List : List<MinTerm4> = combineListWithItself(combine3List)
+
+    fun calculatePrimeImplicants() : List<MinTerm4> {
+        var nonCoveredMinTerms : MutableList<Int> = minTermList.toMutableList()
+        val implicants = combine4List + combine3List + combine2List + combine1List + combine0List
+        var result : MutableList<MinTerm4> = MutableList(0) { MinTerm4.defaultValue }
+        implicants.forEach { implicant ->
+            val implRepr     = implicant.toIntRepresentatives()
+            if (nonCoveredMinTerms.intersect(implRepr).isNotEmpty()) {
+                nonCoveredMinTerms -= implRepr
+                result.add(implicant)
+            }
+        }
+        return result
+    }
+    val primeImplicants : List<MinTerm4> = calculatePrimeImplicants()
 }

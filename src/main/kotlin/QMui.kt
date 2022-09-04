@@ -20,6 +20,7 @@ sealed class QMuiState {
     object SHOWED_MINTERMS          : QMuiState()
     object SHOWED_COMBINED_MINTERMS : QMuiState()
     object SHOWED_MINTERMS_REPRESENTATIVES : QMuiState()
+    object SHOWED_PRIME_IMPLICANTS : QMuiState()
     object FINAL                    : QMuiState()
 
     companion object {
@@ -27,6 +28,7 @@ sealed class QMuiState {
         listOf(INPUT, SHOWED_BIN_TABLE, SHOWED_MINTERMS,
                SHOWED_COMBINED_MINTERMS,
                SHOWED_MINTERMS_REPRESENTATIVES,
+               SHOWED_PRIME_IMPLICANTS,
                FINAL)
     }
 
@@ -131,11 +133,18 @@ val qmUI = FC<QMprops> { props ->
             }
         }
     }
+    fun createPrimeImplicantsBlock() {
+        +"Prime Implicants: "
+        qmTable.primeImplicants.forEach {
+            +(it.toString() + ", ")
+        }
+    }
 
     createStateButton("Step 1. Show the truth table of f", QMuiState.SHOWED_BIN_TABLE)
     createStateButton("Step 2. Show minterms", QMuiState.SHOWED_MINTERMS)
     createStateButton("Step 3. Show combined minterms", QMuiState.SHOWED_COMBINED_MINTERMS)
     createStateButton("Step 4. Show minterms representatives", QMuiState.SHOWED_MINTERMS_REPRESENTATIVES)
+    createStateButton("Step 5. Show prime implicants", QMuiState.SHOWED_PRIME_IMPLICANTS)
     br {}
     createInputBlock()
     if (qmUiState.ge(QMuiState.SHOWED_BIN_TABLE)) {
@@ -147,5 +156,10 @@ val qmUI = FC<QMprops> { props ->
         br {}
         hr {}
         createMinTermsBlock()
+    }
+    if (qmUiState.ge(QMuiState.SHOWED_PRIME_IMPLICANTS)) {
+        br {}
+        hr {}
+        createPrimeImplicantsBlock()
     }
 }
