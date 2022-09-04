@@ -6,8 +6,9 @@ fun main() {
     val container = document.createElement("div")
     document.body!!.appendChild(container)
 
-    val welcome = QM.create {
-        minTermInput = "0,2,3,6,7,8,10,12,13"
+    val welcome = qmUI.create {
+        qmTable = QMtable("0,2,3,6,7,8,10,12,13")
+        qmUiState = QMuiState.INPUT
     }
     createRoot(container).render(welcome)
 }

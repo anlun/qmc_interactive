@@ -23,6 +23,7 @@ sealed class Signal {
         }
 }
 
+
 class MinTerm4(
     val A : Signal,
     val B : Signal,
@@ -76,40 +77,53 @@ class MinTerm4(
         return this.A == other.A && this.B == other.B
             && this.C == other.C && this.D == other.D
     }
+
+    override fun hashCode(): Int {
+        val hashSeed = 239
+        val hashAB   = hashSeed * A.hashCode() + B.hashCode()
+        val hashABC  = hashSeed * hashAB       + C.hashCode()
+        val hashABCD = hashSeed * hashABC      + D.hashCode()
+        return hashSeed * hashABCD
+    }
 }
-
-class State3 ( val oneInts      : List<Int>
-             , val minTermList  : List<MinTerm4>? = null
-             , val curMinTermToMerge  : Int? = null
-             , val nextMinTermToMerge : Int? = null
-             , val mergedMinTerms1 : List<MinTerm4>? = null
-             )
-{
-    companion object {
-        fun intToMinTerm3list(l : List<Int>) : List<MinTerm4> =
-            l.mapNotNull { MinTerm4.fromInt(it) }
-    }
-
-    private fun checkState() {
-        if (minTermList != null && minTermList.size != oneInts.size) {
-            throw Exception("minTermList and oneInts sizes do not match!")
-        }
-    }
-
-    private fun nextUnchecked() : State3? {
-        if (minTermList == null) {
-            return State3(oneInts, intToMinTerm3list(oneInts))
-        }
-        if (curMinTermToMerge == null || nextMinTermToMerge == null || mergedMinTerms1 == null) {
-            return State3(oneInts, intToMinTerm3list(oneInts),
-            0, 1, listOf())
-        }
+fun Int.toMinTerm4String() : String = MinTerm4.fromInt(this).toString()
+fun Int.minTerm4CountOnes() : Int = toMinTerm4String().count { it == '1' }
+fun String.toIntInMinTerm4Range() : Int? {
+    try {
+        val v = this.toInt()
+        if (v !in MinTerm4.range) return null
+        return v
+    } catch (e : NumberFormatException) {
         return null
     }
+}
+fun Boolean.toSymbol() : String =
+    if (this) "1" else "0"
 
-    fun next() : State3? {
-        val newState = nextUnchecked()
-        newState?.checkState()
-        return newState
+class QMtable(val minTermInput : String) {
+    companion object {
+        private fun combineListWithItself(l : List<MinTerm4>) : List<MinTerm4> =
+            l.flatMap { mt1 ->
+                l.mapNotNull { mt2 ->
+                    mt1.combine(mt2)
+                }
+            }
+            .distinct()
     }
+
+    val minTermList : List<Int> =
+        minTermInput
+            .split(",")
+            .mapNotNull { it.trim().toIntInMinTerm4Range() }
+            .sorted()
+            .distinct()
+
+    val oneSortedMinTermList : List<Int> =
+        minTermList.sortedBy { it.minTerm4CountOnes() }
+
+    val combine1List : List<MinTerm4> =
+        combineListWithItself(oneSortedMinTermList.mapNotNull { MinTerm4.fromInt(it) })
+    val combine2List : List<MinTerm4> = combineListWithItself(combine1List)
+    val combine3List : List<MinTerm4> = combineListWithItself(combine2List)
+    val combine4List : List<MinTerm4> = combineListWithItself(combine3List)
 }
