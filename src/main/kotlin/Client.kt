@@ -9,7 +9,7 @@ fun main() {
     val welcome = qmUI.create {
         qmTable = QMtable("0,2,3,6,7,8,10,12,13")
 //        qmTable = QMtable("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15")
-        qmUiState = QMuiState(false, false, false, false, false, false)
+        qmUiState = QMuiState()
     }
     createRoot(container).render(welcome)
 }

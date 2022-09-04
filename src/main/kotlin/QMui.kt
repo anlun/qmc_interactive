@@ -11,20 +11,25 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.table
+import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
 import react.useState
 
 
-class QMuiState(var show_truth_table       : Boolean
-                , var show_minterms          : Boolean
-                , var show_combined_minterms : Boolean
-                , var show_minterms_repr     : Boolean
-                , var show_prime_impl        : Boolean
-                , var show_prime_impl_table  : Boolean
-                   )
+class QMuiState(paramShows : Array<Boolean> = Array(SHOWS_SIZE) {true})
 {
+    private var shows: Array<Boolean> =
+        if (paramShows.size == SHOWS_SIZE) {
+            paramShows
+        } else {
+            Array(SHOWS_SIZE) { true }
+        }
     companion object {
+        const val SHOWS_SIZE = 6
+
         const val TRUTH_TABLE = 0
         const val MINTERMS = 1
         const val COMBINED_MINTERMS = 2
@@ -33,32 +38,12 @@ class QMuiState(var show_truth_table       : Boolean
         const val PRIME_IMPL_TABLE = 5
     }
 
-    fun getField(i : Int) : Boolean =
-        when (i) {
-            TRUTH_TABLE -> show_truth_table
-            MINTERMS -> show_minterms
-            COMBINED_MINTERMS -> show_combined_minterms
-            MINTERMS_REPR -> show_minterms_repr
-            PRIME_IMPL -> show_prime_impl
-            PRIME_IMPL_TABLE -> show_prime_impl_table
-            else -> false
-        }
-    fun updateField(i : Int, new_value : Boolean) : QMuiState =
-        when (i) {
-            TRUTH_TABLE ->
-                QMuiState(new_value, show_minterms, show_combined_minterms, show_minterms_repr, show_prime_impl, show_prime_impl_table)
-            MINTERMS ->
-                QMuiState(show_truth_table, new_value, show_combined_minterms, show_minterms_repr, show_prime_impl, show_prime_impl_table)
-            COMBINED_MINTERMS ->
-                QMuiState(show_truth_table, show_minterms, new_value, show_minterms_repr, show_prime_impl, show_prime_impl_table)
-            MINTERMS_REPR ->
-                QMuiState(show_truth_table, show_minterms, show_combined_minterms, new_value, show_prime_impl, show_prime_impl_table)
-            PRIME_IMPL ->
-                QMuiState(show_truth_table, show_minterms, show_combined_minterms, show_minterms_repr, new_value, show_prime_impl_table)
-            PRIME_IMPL_TABLE ->
-                QMuiState(show_truth_table, show_minterms, show_combined_minterms, show_minterms_repr, show_prime_impl, new_value)
-            else -> this
-        }
+    fun getField(i : Int) : Boolean = shows[i]
+    fun updateField(i : Int, new_value : Boolean) : QMuiState {
+        val newShows = shows.copyOf()
+        newShows[i] = new_value
+        return QMuiState(newShows)
+    }
 }
 
 external interface QMprops : Props {
@@ -68,16 +53,6 @@ external interface QMprops : Props {
 val qmUI = FC<QMprops> { props ->
     var qmTable   by useState(props.qmTable)
     var qmUiState by useState(props.qmUiState)
-//    fun createStateButton(text : String, state: QMuiState) {
-//        button {
-//            +text
-//            disabled = qmUiState == state
-//            onClick = {
-//                qmUiState = state
-//            }
-//        }
-//        br {}
-//    }
     fun createStateCheckbox(text : String, stateComponent : Int) {
         input {
             type = InputType.checkbox
@@ -102,36 +77,45 @@ val qmUI = FC<QMprops> { props ->
         }
         +") "
     }
-    fun createTruthTableBlock() {
-            table {
-                td {
-                    tr { +"N" }
-                    MinTerm4.range.forEach {
-                        tr {
-                            +it.toString()
-                        }
+    fun createTable(header : List<String>, columns : List<List<String>>) {
+        val emptyCellString = ""
+        fun longestColumnSize() : Int {
+            var max_size = 0
+            columns.forEach { column ->
+                max_size = kotlin.math.max(max_size, column.size)
+            }
+            return max_size
+        }
+        table {
+            thead {
+                tr {
+                    header.forEach {
+                        th { +it }
                     }
                 }
-                td {
-                    tr { +"Binary N" }
-                    MinTerm4.range.forEach {
-                        tr {
-                            +it.toMinTerm4String()
-                        }
-                    }
-                }
-                td {
-                    tr { +"f(N)" }
-                    MinTerm4.range.forEach {
-                        tr {
-                            +qmTable.minTermList.contains(it).toSymbol()
+            }
+            tbody {
+                (0 until longestColumnSize()).forEach { currentRow ->
+                    tr {
+                        columns.forEach { column ->
+                            td { +(column.getOrNull(currentRow) ?: emptyCellString) }
                         }
                     }
                 }
             }
         }
+    }
+    fun createTruthTableBlock() {
+        createTable(listOf("N", "Binary N", "f(N)"),
+            listOf( MinTerm4.range.map { it.toString() }
+                  , MinTerm4.range.map { it.toMinTerm4String() }
+                  , MinTerm4.range.map { qmTable.minTermList.contains(it).toSymbol() }
+                  )
+        )
+
+    }
     fun columnForCombineList(reprWord : String, s : String, l : List<MinTerm4>) {
-        if (qmUiState.show_minterms_repr) {
+        if (qmUiState.getField(QMuiState.MINTERMS_REPR)) {
             td {
                 css {
                     padding = 5.px
@@ -160,7 +144,7 @@ val qmUI = FC<QMprops> { props ->
         +"MinTerms"
         table {
             columnForCombineList("N", "Binary N", qmTable.combine0List)
-            if (qmUiState.show_combined_minterms) {
+            if (qmUiState.getField(QMuiState.COMBINED_MINTERMS)) {
                 columnForCombineList("Repr. 1", "Combine 1", qmTable.combine1List)
                 columnForCombineList("Repr. 2", "Combine 2", qmTable.combine2List)
                 columnForCombineList("Repr. 3", "Combine 3", qmTable.combine3List)
@@ -238,19 +222,19 @@ val qmUI = FC<QMprops> { props ->
             display = Display.flex
             backgroundColor = rgb(8, 97, 22)
         }
-        if (qmUiState.show_truth_table) {
+        if (qmUiState.getField(QMuiState.TRUTH_TABLE)) {
             createTruthTableBlock()
         }
-        if (qmUiState.show_minterms) {
+        if (qmUiState.getField(QMuiState.MINTERMS)) {
             createMinTermsBlock()
         }
     }
-    if (qmUiState.show_prime_impl) {
+    if (qmUiState.getField(QMuiState.PRIME_IMPL)) {
         br {}
         hr {}
         createPrimeImplicantsBlock()
     }
-    if (qmUiState.show_prime_impl_table) {
+    if (qmUiState.getField(QMuiState.PRIME_IMPL_TABLE)) {
         br {}
         hr {}
         createPrimeImplTableBlock()
