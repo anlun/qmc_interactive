@@ -8,7 +8,9 @@ fun main() {
 
     val welcome = qmUI.create {
         qmTable = QMtable("0,2,3,6,7,8,10,12,13")
-        qmUiState = QMuiState.FINAL
+        qmUiState = QMuiState.INPUT
+//        qmUiState = QMuiState.FINAL
+//        qmUiState_new = QMuiState_new()
     }
     createRoot(container).render(welcome)
 }

@@ -1,4 +1,3 @@
-import csstype.Padding
 import csstype.px
 import emotion.react.css
 import react.FC
@@ -16,19 +15,21 @@ import react.useState
 
 sealed class QMuiState {
     object INPUT                    : QMuiState()
-    object SHOWED_BIN_TABLE         : QMuiState()
+    object SHOWED_TRUTH_TABLE         : QMuiState()
     object SHOWED_MINTERMS          : QMuiState()
     object SHOWED_COMBINED_MINTERMS : QMuiState()
     object SHOWED_MINTERMS_REPRESENTATIVES : QMuiState()
     object SHOWED_PRIME_IMPLICANTS : QMuiState()
+    object SHOWED_PRIME_IMPLICANT_TABLE : QMuiState()
     object FINAL                    : QMuiState()
 
     companion object {
         private val orderList =
-        listOf(INPUT, SHOWED_BIN_TABLE, SHOWED_MINTERMS,
+        listOf(INPUT, SHOWED_TRUTH_TABLE, SHOWED_MINTERMS,
                SHOWED_COMBINED_MINTERMS,
                SHOWED_MINTERMS_REPRESENTATIVES,
                SHOWED_PRIME_IMPLICANTS,
+               SHOWED_PRIME_IMPLICANT_TABLE,
                FINAL)
     }
 
@@ -37,13 +38,23 @@ sealed class QMuiState {
         this.orderIndex() >= other.orderIndex()
 }
 
+//class QMuiState_new( var show_input         : Boolean = false
+//                   , var show_truth_table   : Boolean = false
+//                   , var show_minterms      : Boolean = false
+//                   , var show_minterms_repr : Boolean = false
+//                   , var show_prime_impl    : Boolean = false
+//                   )
+//{}
+
 external interface QMprops : Props {
     var qmTable   : QMtable
     var qmUiState : QMuiState
+//    var qmUiState_new : QMuiState_new
 }
 val qmUI = FC<QMprops> { props ->
     var qmTable   by useState(props.qmTable)
     var qmUiState by useState(props.qmUiState)
+//    var qmUiState_new by useState(props.qmUiState_new)
     fun createStateButton(text : String, state: QMuiState) {
         button {
             +text
@@ -54,6 +65,19 @@ val qmUI = FC<QMprops> { props ->
         }
         br {}
     }
+//    fun createStateCheckbox(text : String, stateComponent : String) {
+//        input {
+//            type = InputType.checkbox
+//            onChange = { event ->
+//                print("test")
+//                qmUiState_new.show_truth_table = true
+//            }
+//        }
+//        +text
+//        br {}
+//    }
+//    createStateCheckbox("Step 1. Show the truth table of f", "truth table")
+
     fun createInputBlock() {
         +"f("
         b { +MinTerm4.argString }
@@ -67,7 +91,7 @@ val qmUI = FC<QMprops> { props ->
         }
         +") "
     }
-    fun createBinaryPresentationBlock() {
+    fun createTruthTableBlock() {
             table {
                 td {
                     tr { +"N" }
@@ -139,18 +163,67 @@ val qmUI = FC<QMprops> { props ->
             +(it.toString() + ", ")
         }
     }
+    fun createPrimeImplTableBlock() {
+        table {
+            td {
+                tr {
+                    +"Prime Minterms"
+                }
+                qmTable.primeImplicants.forEach {
+                    tr {
+                        +it.toString()
+                    }
+                }
+            }
+            td {
+                tr {
+                    +"Prime Implicants"
+                }
+                qmTable.primeImplicants.forEach {
+                    tr {
+                        +it.toABCD()
+                    }
+                }
+            }
+            td {
+                tr {
+                    +"Repr."
+                }
+                qmTable.primeImplicants.forEach {
+                    tr {
+                        +it.toIntRepresentatives().toString()
+                    }
+                }
+            }
+            qmTable.minTermList.forEach { i ->
+                td {
+                    tr { +"m${i.toString()}" }
+                    qmTable.primeImplicants.forEach { mt ->
+                        tr {
+                            if (mt.toIntRepresentatives().contains(i)) {
+                                +"x"
+                            } else {
+                                +"-"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-    createStateButton("Step 1. Show the truth table of f", QMuiState.SHOWED_BIN_TABLE)
+    createStateButton("Step 1. Show the truth table of f", QMuiState.SHOWED_TRUTH_TABLE)
     createStateButton("Step 2. Show minterms", QMuiState.SHOWED_MINTERMS)
     createStateButton("Step 3. Show combined minterms", QMuiState.SHOWED_COMBINED_MINTERMS)
     createStateButton("Step 4. Show minterms representatives", QMuiState.SHOWED_MINTERMS_REPRESENTATIVES)
     createStateButton("Step 5. Show prime implicants", QMuiState.SHOWED_PRIME_IMPLICANTS)
+    createStateButton("Step 6. Show prime implicant table", QMuiState.SHOWED_PRIME_IMPLICANT_TABLE)
     br {}
     createInputBlock()
-    if (qmUiState.ge(QMuiState.SHOWED_BIN_TABLE)) {
+    if (qmUiState.ge(QMuiState.SHOWED_TRUTH_TABLE)) {
         br {}
         hr {}
-        createBinaryPresentationBlock()
+        createTruthTableBlock()
     }
     if (qmUiState.ge(QMuiState.SHOWED_MINTERMS)) {
         br {}
@@ -161,5 +234,10 @@ val qmUI = FC<QMprops> { props ->
         br {}
         hr {}
         createPrimeImplicantsBlock()
+    }
+    if (qmUiState.ge(QMuiState.SHOWED_PRIME_IMPLICANT_TABLE)) {
+        br {}
+        hr {}
+        createPrimeImplTableBlock()
     }
 }
