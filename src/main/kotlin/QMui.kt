@@ -2,6 +2,7 @@ import csstype.Display
 import csstype.px
 import csstype.rgb
 import emotion.react.css
+import react.ChildrenBuilder
 import react.FC
 import react.Props
 import react.dom.html.InputType
@@ -52,7 +53,7 @@ external interface QMprops : Props {
 val qmUI = FC<QMprops> { props ->
     var qmTable   by useState(props.qmTable)
     var qmUiState by useState(props.qmUiState)
-    fun createStateCheckbox(text : String, stateComponent : Int) {
+    fun ChildrenBuilder.createStateCheckbox(text : String, stateComponent : Int) {
         input {
             type = InputType.checkbox
             checked = qmUiState.getField(stateComponent)
@@ -63,20 +64,20 @@ val qmUI = FC<QMprops> { props ->
         +text
         br {}
     }
-    fun createInputBlock() {
+    fun ChildrenBuilder.createInputBlock() {
         +"f("
         b { +MinTerm4.argString }
         +") = Σ m("
         input {
             type = InputType.text
-            value = qmTable.minTermInput
             onChange = { event ->
                 qmTable = QMtable(event.target.value)
             }
+            value = qmTable.minTermInput
         }
         +") "
     }
-    fun createTable(header : List<String>, columns : List<List<String>>) {
+    fun ChildrenBuilder.createTable(header : List<String>, columns : List<List<String>>) {
         val emptyCellString = ""
         fun longestColumnSize() : Int {
             var maxSize = 0
@@ -114,16 +115,15 @@ val qmUI = FC<QMprops> { props ->
             }
         }
     }
-    fun createTruthTableBlock() {
+    fun ChildrenBuilder.createTruthTableBlock() {
         createTable(listOf("N", "Binary N", "f(N)"),
             listOf( MinTerm4.range.map { it.toString() }
                   , MinTerm4.range.map { it.toMinTerm4String() }
                   , MinTerm4.range.map { qmTable.minTermList.contains(it).toSymbol() }
                   )
         )
-
     }
-    fun createMinTermsBlock() {
+    fun ChildrenBuilder.createMinTermsBlock() {
         val header = listOf("N", "Binary N") +
                 if (qmUiState.getField(QMuiState.COMBINED_MINTERMS)) {
                     (1..4).flatMap {
@@ -153,16 +153,16 @@ val qmUI = FC<QMprops> { props ->
                 } else {
                    listOf()
                 }
-        +"MinTerms"
+//        +"MinTerms"
         createTable(header, columns)
     }
-    fun createPrimeImplicantsBlock() {
+    fun ChildrenBuilder.createPrimeImplicantsBlock() {
         +"Prime Implicants: "
         qmTable.primeImplicants.forEach {
             +("$it, ")
         }
     }
-    fun createPrimeImplTableBlock() {
+    fun ChildrenBuilder.createPrimeImplTableBlock() {
         val headerList: List<String> =
             listOf("Prime Minterms", "Prime Implicants", "Repr.") +
                     qmTable.minTermList.map { "m${it}" }
@@ -193,14 +193,16 @@ val qmUI = FC<QMprops> { props ->
     createInputBlock()
     br {}
     div {
-        css {
-            display = Display.flex
-            backgroundColor = rgb(8, 97, 22)
-        }
+//        css {
+//            display = Display.flex
+//        }
         if (qmUiState.getField(QMuiState.TRUTH_TABLE)) {
             createTruthTableBlock()
         }
         if (qmUiState.getField(QMuiState.MINTERMS)) {
+            br {}
+            hr {}
+            +"MinTerms"
             createMinTermsBlock()
         }
     }
