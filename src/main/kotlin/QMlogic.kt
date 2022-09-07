@@ -152,7 +152,14 @@ class QMtable(val  minTermInput : String
 
         private fun parseListInt(s : String) : List<Int> =
             s.split(",")
-                .mapNotNull { it.trim().toIntInMinTerm4Range() }
+                .flatMap {
+                    val ranges = it.split("-").map { it.trim() }
+                    if (ranges.size == 0) return@flatMap listOf<Int>()
+                    val v0 = ranges[0].toIntInMinTerm4Range() ?: return@flatMap listOf<Int>()
+                    if (ranges.size == 1) return@flatMap listOf(v0)
+                    val v1 = ranges[1].toIntInMinTerm4Range() ?: return@flatMap listOf<Int>()
+                    return@flatMap v0..v1
+                }
                 .sorted()
                 .distinct()
     }
