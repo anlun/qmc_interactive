@@ -108,11 +108,13 @@ class MinTerm4(
     }
 
     override fun hashCode(): Int {
-        val hashSeed = 239
-        val hashAB   = hashSeed * A.hashCode() + B.hashCode()
-        val hashABC  = hashSeed * hashAB       + C.hashCode()
-        val hashABCD = hashSeed * hashABC      + D.hashCode()
-        return hashSeed * hashABCD
+        val hashSeed1 = 239
+        val hashSeed2 = 17
+        fun f(i : Int) : Int = i * hashSeed2 + hashSeed1
+        val hashAB   = f(A.hashCode()) + B.hashCode()
+        val hashABC  = f(hashAB      ) + C.hashCode()
+        val hashABCD = f(hashABC     ) + D.hashCode()
+        return f(hashABCD)
     }
 
     fun toIntRepresentatives() : List<Int> =
@@ -137,7 +139,8 @@ fun String.toIntInMinTerm4Range() : Int? {
 fun Boolean.toSymbol() : String =
     if (this) "1" else "0"
 
-class QMtable(val minTermInput : String) {
+class QMtable(val  minTermInput : String
+            , val dontCareInput : String) {
     companion object {
         private fun combineListWithItself(l : List<MinTerm4>) : List<MinTerm4> =
             l.flatMap { mt1 ->
@@ -146,18 +149,21 @@ class QMtable(val minTermInput : String) {
                 }
             }
             .distinct()
+
+        private fun parseListInt(s : String) : List<Int> =
+            s.split(",")
+                .mapNotNull { it.trim().toIntInMinTerm4Range() }
+                .sorted()
+                .distinct()
     }
 
-    val minTermList : List<Int> =
-        minTermInput
-            .split(",")
-            .mapNotNull { it.trim().toIntInMinTerm4Range() }
-            .sorted()
-            .distinct()
+    val  minTermList : List<Int> = parseListInt(minTermInput)
+    val dontCareList : List<Int> = parseListInt(dontCareInput)
 
     val combine0List : List<MinTerm4> =
-        minTermList.sortedBy { it.minTerm4CountOnes() }
-                   .mapNotNull { MinTerm4.fromInt(it) }
+        (minTermList + dontCareList)
+            .sortedBy { it.minTerm4CountOnes() }
+            .mapNotNull { MinTerm4.fromInt(it) }
     val combine1List : List<MinTerm4> = combineListWithItself(combine0List)
     val combine2List : List<MinTerm4> = combineListWithItself(combine1List)
     val combine3List : List<MinTerm4> = combineListWithItself(combine2List)
