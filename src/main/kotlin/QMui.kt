@@ -7,6 +7,7 @@ import react.dom.html.InputType
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.table
@@ -176,31 +177,53 @@ val qmUI = FC<QMprops> { props ->
 //        +"MinTerms"
         createTable(header, columns)
     }
-    fun ChildrenBuilder.createPrimeImplicantsBlock() {
-        +"Prime Implicants: "
-        qmTable.primeImplicants.forEach {
+    fun ChildrenBuilder.createListBlock(title : String, l : List<String>) {
+        +title
+        l.forEach {
             +("$it, ")
         }
     }
-    fun ChildrenBuilder.createPrimeImplTableBlock() {
+    fun ChildrenBuilder.createImplChartBlock(
+        header : String,
+        header_col1 : String,
+        header_col2 : String,
+        xl : List<Int>, yl : List<MinTerm4>,
+        implChart : Set<Pair<Int, MinTerm4>>
+    ) {
         val headerList: List<String> =
-            listOf("Prime Minterms", "Prime Implicants", "Repr.") +
-                    qmTable.minTermList.map { "m${it}" }
+            listOf(header_col1, header_col2, "Repr.") + xl.map { "m${it}" }
         val columns: List<List<String>> =
-            listOf(qmTable.primeImplicants.map { it.toString() },
-                qmTable.primeImplicants.map { it.toABCD() },
-                qmTable.primeImplicants.map { it.toIntRepresentatives().toString() }
+            listOf(yl.map { it.toString() },
+                yl.map { it.toABCD() },
+                yl.map { it.toIntRepresentatives().toString() }
             ) +
-                    qmTable.minTermList.map { i ->
-                        qmTable.primeImplicants.map { mt ->
-                            if (mt.toIntRepresentatives().contains(i)) {
+                    xl.map { i ->
+                        yl.map { mt ->
+                            if (implChart.contains(Pair(i, mt))) {
                                 "x"
                             } else {
                                 ""
                             }
                         }
                     }
+        h3 { +header }
         createTable(headerList, columns)
+    }
+    fun ChildrenBuilder.createPrimeImplChartBlock() {
+        val xl = qmTable.minTermList
+        val yl = qmTable.primeImplicants
+        createImplChartBlock("Prime implicant chart",
+            "Prime Minterms", "Prime Implicants",
+            xl, yl,
+            qmTable.primeImplicantChart)
+    }
+    fun ChildrenBuilder.createNonEssentialPrimeImplChartBlock() {
+        val xl = qmTable.nonEssentialPrimeImplicantMinTerms
+        val yl = qmTable.nonEssentialPrimeImplicants
+        createImplChartBlock("Non-Essential Prime implicant chart",
+            "Non-Essential Prime Minterms", "Non-Essential Prime Implicants",
+            xl, yl,
+            qmTable.nonEssentialPrimeImplicantChart)
     }
 
     input {
@@ -223,7 +246,7 @@ val qmUI = FC<QMprops> { props ->
     createStateCheckbox("Step 3. Show combined minterms", QMuiState.COMBINED_MINTERMS)
     createStateCheckbox("Step 4. Show minterms representatives", QMuiState.MINTERMS_REPR)
     createStateCheckbox("Step 5. Show prime implicants", QMuiState.PRIME_IMPL)
-    createStateCheckbox("Step 6. Show prime implicant table", QMuiState.PRIME_IMPL_TABLE)
+    createStateCheckbox("Step 6. Show prime implicant chart", QMuiState.PRIME_IMPL_TABLE)
     br {}
     createInputBlock()
     br {}
@@ -237,18 +260,25 @@ val qmUI = FC<QMprops> { props ->
         if (qmUiState.get(QMuiState.MINTERMS)) {
             br {}
             hr {}
-            +"MinTerms"
+            h3 { +"Minterms" }
             createMinTermsBlock()
         }
     }
     if (qmUiState.get(QMuiState.PRIME_IMPL)) {
         br {}
         hr {}
-        createPrimeImplicantsBlock()
+        createListBlock("Prime Implicants: ", qmTable.primeImplicants.map { it.toString() })
     }
     if (qmUiState.get(QMuiState.PRIME_IMPL_TABLE)) {
         br {}
         hr {}
-        createPrimeImplTableBlock()
+        createPrimeImplChartBlock()
+        br {}
+        hr {}
+        createListBlock("Essential Prime Implicants: ",
+            qmTable.essentialPrimeImplicants.map { it.toABCD() })
+        br {}
+        hr {}
+        createNonEssentialPrimeImplChartBlock()
     }
 }

@@ -61,7 +61,7 @@ class MinTerm4(
     companion object {
         private const val size  : Int = 16 // 2 ** 4
         val range = 0 until size
-        const val argString = "A, B, C, D"
+        const val argString = "a, b, c, d"
 
         val fullMinTerm = MinTerm4(Signal.Dash, Signal.Dash, Signal.Dash, Signal.Dash)
 
@@ -122,7 +122,7 @@ class MinTerm4(
 
     fun toABCD() : String {
         if (this == fullMinTerm) return "<full mt>"
-        return A.toABCD("A") + B.toABCD("B") + C.toABCD("C") + D.toABCD("D")
+        return A.toABCD("a") + B.toABCD("b") + C.toABCD("c") + D.toABCD("d")
     }
 }
 fun Int.toMinTerm4String() : String = MinTerm4.fromInt(this).toString()
@@ -176,7 +176,7 @@ class QMtable(val  minTermInput : String
     val combine3List : List<MinTerm4> = combineListWithItself(combine2List)
     val combine4List : List<MinTerm4> = combineListWithItself(combine3List)
 
-    fun calculatePrimeImplicants() : List<MinTerm4> {
+    private fun calculatePrimeImplicants_old() : List<MinTerm4> {
         val nonCoveredMinTerms : MutableList<Int> = minTermList.toMutableList()
         val implicants = combine4List + combine3List + combine2List + combine1List + combine0List
         val result : MutableList<MinTerm4> = MutableList(0) { MinTerm4.fullMinTerm }
@@ -189,5 +189,72 @@ class QMtable(val  minTermInput : String
         }
         return result
     }
+    private fun dontCombineWithOthers(l : List<MinTerm4>) : List<MinTerm4> {
+        val result : MutableList<MinTerm4> = l.toMutableList()
+        l.forEach { fst ->
+            l.forEach { snd ->
+                if (fst.combine(snd) != null) {
+                    result.remove(fst)
+                    result.remove(snd)
+                }
+            }
+        }
+        return result
+    }
+    private fun calculatePrimeImplicants() : List<MinTerm4> =
+        dontCombineWithOthers(combine4List) + dontCombineWithOthers(combine3List) +
+        dontCombineWithOthers(combine2List) + dontCombineWithOthers(combine1List) +
+        dontCombineWithOthers(combine0List)
     val primeImplicants : List<MinTerm4> = calculatePrimeImplicants()
+
+    private fun calculatePrimeImplicantForIndex(i : Int) : List<MinTerm4> {
+        val result = mutableListOf<MinTerm4>()
+        primeImplicants.forEach { mt ->
+            if (mt.toIntRepresentatives().contains(i)) {
+                result.add(mt)
+            }
+        }
+        return result
+    }
+    private fun calculatePrimeImplicantChart() : Set<Pair<Int, MinTerm4>> {
+        val set = mutableSetOf<Pair<Int, MinTerm4>>()
+        minTermList.forEach { i ->
+            calculatePrimeImplicantForIndex(i).forEach { mt ->
+                set.add(Pair(i, mt))
+            }
+        }
+        return set
+    }
+    val primeImplicantChart : Set<Pair<Int, MinTerm4>> = calculatePrimeImplicantChart()
+
+    private fun calculateEssentialPrimeImplicants() : List<MinTerm4> {
+        val result = mutableListOf<MinTerm4>()
+        minTermList.forEach { i ->
+            val l = calculatePrimeImplicantForIndex(i)
+            if (l.size == 1) {
+                result.add(l[0])
+            }
+        }
+        return result.distinct()
+    }
+    val essentialPrimeImplicants : List<MinTerm4> = calculateEssentialPrimeImplicants()
+
+    val essentialPrimeImplicantMinTerms = essentialPrimeImplicants.flatMap { mt ->
+        mt.toIntRepresentatives()
+    }.distinct()
+    val nonEssentialPrimeImplicantMinTerms = minTermList - essentialPrimeImplicantMinTerms
+    val nonEssentialPrimeImplicants = primeImplicants - essentialPrimeImplicants
+
+    private fun calculateNonEssentialPrimeImplicantChart() : Set<Pair<Int,MinTerm4>> {
+        val result = primeImplicantChart.toMutableSet()
+        primeImplicantChart.forEach { p ->
+            val (i, mt) = p
+            if (essentialPrimeImplicants.contains(mt) || essentialPrimeImplicantMinTerms.contains(i)) {
+                result.remove(p)
+            }
+        }
+        return result
+    }
+    val nonEssentialPrimeImplicantChart : Set<Pair<Int,MinTerm4>> =
+        calculateNonEssentialPrimeImplicantChart()
 }
