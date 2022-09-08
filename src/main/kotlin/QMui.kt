@@ -6,6 +6,7 @@ import react.Props
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.br
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.hr
@@ -28,7 +29,7 @@ class QMuiState(paramShows : Array<Boolean> = Array(SHOWS_SIZE) {true})
             Array(SHOWS_SIZE) { true }
         }
     companion object {
-        const val SHOWS_SIZE = 7
+        const val SHOWS_SIZE = 8
 
         const val DONT_CARE = 0
         const val TRUTH_TABLE = 1
@@ -37,6 +38,7 @@ class QMuiState(paramShows : Array<Boolean> = Array(SHOWS_SIZE) {true})
         const val MINTERMS_REPR = 4
         const val PRIME_IMPL = 5
         const val PRIME_IMPL_TABLE = 6
+        const val FINAL_SOLUTION = 7
     }
 
     fun get(i : Int) : Boolean = shows[i]
@@ -56,6 +58,14 @@ val qmUI = FC<QMprops> { props ->
     var qmTable   by useState(props.qmTable)
     var lastDontCareInput by useState(props.lastDontCareInput)
     var qmUiState by useState(props.qmUiState)
+    fun ChildrenBuilder.createExampleButton(text : String, qmTable_new : QMtable) {
+        button {
+            +text
+            onClick = { event ->
+                qmTable = qmTable_new
+            }
+        }
+    }
     fun ChildrenBuilder.createStateCheckbox(text : String, stateComponent : Int) {
         input {
             type = InputType.checkbox
@@ -227,6 +237,10 @@ val qmUI = FC<QMprops> { props ->
             qmTable.nonEssentialPrimeImplicantChart)
     }
 
+    createExampleButton("Ex 1. 7-led A", QMtable("0,2,3,5,6,7,8,9", ""))
+    createExampleButton("Ex 2. Importance of non-essential prime implicants", QMtable("0,1,2,5,6,7", ""))
+    createExampleButton("Ex 3. 7-led A w/ Don't care", QMtable("0,2,3,5,6,7,8,9", "10-15"))
+    br {}
     input {
         type = InputType.checkbox
         checked = qmUiState.get(QMuiState.DONT_CARE)
@@ -248,6 +262,7 @@ val qmUI = FC<QMprops> { props ->
     createStateCheckbox("Step 4. Show minterms representatives", QMuiState.MINTERMS_REPR)
     createStateCheckbox("Step 5. Show prime implicants", QMuiState.PRIME_IMPL)
     createStateCheckbox("Step 6. Show prime implicant chart", QMuiState.PRIME_IMPL_TABLE)
+    createStateCheckbox("Step 7. Show final solution", QMuiState.FINAL_SOLUTION)
     br {}
     createInputBlock()
     br {}
@@ -291,6 +306,9 @@ val qmUI = FC<QMprops> { props ->
             )
             br {}
         }
+    }
+
+    if (qmUiState.get(QMuiState.FINAL_SOLUTION)) {
         h3 { +"A minimal full solution" }
         qmTable.essentialPrimeImplicants.forEach {
             +("${it.toABCD()} + ")
@@ -302,7 +320,7 @@ val qmUI = FC<QMprops> { props ->
             }
         }
         h3 { +"Initial representation" }
-        qmTable.combine0List.forEach {
+        qmTable.initialMinTerms.forEach {
             +("${it.toABCD()} + ")
         }
     }

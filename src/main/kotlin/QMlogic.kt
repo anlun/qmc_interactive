@@ -182,6 +182,10 @@ class QMtable(val  minTermInput : String
     val  minTermList : List<Int> = parseListInt(minTermInput)
     val dontCareList : List<Int> = parseListInt(dontCareInput)
 
+    val initialMinTerms =
+        minTermList
+            .sortedBy { it.minTerm4CountOnes() }
+            .mapNotNull { MinTerm4.fromInt(it) }
     val combine0List : List<MinTerm4> =
         (minTermList + dontCareList)
             .sortedBy { it.minTerm4CountOnes() }
