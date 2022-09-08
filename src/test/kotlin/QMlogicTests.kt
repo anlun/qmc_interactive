@@ -1,5 +1,6 @@
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 class QMlogicTests {
     val m = MinTerm4.range.map { MinTerm4.fromInt(it) }
@@ -46,5 +47,11 @@ class QMlogicTests {
     @Test
     fun m0m1combine() {
         assertEquals(MinTerm4(Signal.Zero, Signal.Zero, Signal.Zero, Signal.Dash), m[0]?.combine(m[1]))
+    }
+
+    @Test
+    fun nonEssentialSolutions_012567() {
+        val qmTable = QMtable("0,1,2,5,6,7", "")
+        assertEquals(true, qmTable.nonEssentialSolutions.isNotEmpty())
     }
 }

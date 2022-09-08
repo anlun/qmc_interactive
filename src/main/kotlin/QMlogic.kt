@@ -35,6 +35,12 @@ sealed class Signal {
             is One  -> listOf(1)
             is Dash -> listOf(0, 1)
         }
+
+    fun toMetricValue() : Int =
+        when (this) {
+            is Zero, One -> 1
+            is Dash      -> 0
+        }
 }
 
 fun List<Signal>.toIntRepresentatives() : List<Int> {
@@ -124,6 +130,10 @@ class MinTerm4(
         if (this == fullMinTerm) return "<full mt>"
         return A.toABCD("a") + B.toABCD("b") + C.toABCD("c") + D.toABCD("d")
     }
+
+    fun toMetricValue() : Int =
+        A.toMetricValue() + B.toMetricValue() +
+        C.toMetricValue() + D.toMetricValue()
 }
 fun Int.toMinTerm4String() : String = MinTerm4.fromInt(this).toString()
 fun Int.minTerm4CountOnes() : Int = toMinTerm4String().count { it == '1' }
@@ -162,6 +172,11 @@ class QMtable(val  minTermInput : String
                 }
                 .sorted()
                 .distinct()
+
+        fun solutionValue(solution : List<MinTerm4>) : Int =
+            solution.size + solution.fold(0) { a, b ->
+                return@fold a + b.toMetricValue()
+            }
     }
 
     val  minTermList : List<Int> = parseListInt(minTermInput)
@@ -257,4 +272,34 @@ class QMtable(val  minTermInput : String
     }
     val nonEssentialPrimeImplicantChart : Set<Pair<Int,MinTerm4>> =
         calculateNonEssentialPrimeImplicantChart()
+
+    fun calculateNonEssentialSolutions_helper(leftMinTerms : List<Int>, leftImplicants : List<MinTerm4>)
+    : List<List<MinTerm4>>? {
+        console.log(leftMinTerms)
+        console.log(leftImplicants)
+        console.log("\n")
+        if (leftMinTerms  .isEmpty()) return listOf<List<MinTerm4>>()
+        if (leftImplicants.isEmpty()) return null
+        val newLeftImplicants = leftImplicants.drop(1)
+        val head = leftImplicants[0]
+        fun calculateResultWithHead() : List<List<MinTerm4>>? {
+            val newLeftMinTerms = leftMinTerms - head.toIntRepresentatives()
+            if (newLeftMinTerms.size == leftMinTerms.size) return null
+            val recursiveResult =
+              calculateNonEssentialSolutions_helper(newLeftMinTerms, newLeftImplicants)
+                  ?: return null
+            if (recursiveResult.isEmpty()) return listOf(listOf(head))
+            return recursiveResult.map { listOf(head) + it }
+        }
+        val resultWithHead    = calculateResultWithHead()
+        val resultWithoutHead = calculateNonEssentialSolutions_helper(leftMinTerms, newLeftImplicants)
+        if (resultWithoutHead == null) return resultWithHead
+        return (resultWithHead ?: listOf()) + resultWithoutHead
+    }
+    fun createNonEssentialSolutions() : List<List<MinTerm4>> =
+        calculateNonEssentialSolutions_helper(nonEssentialPrimeImplicantMinTerms,
+            nonEssentialPrimeImplicants)
+            ?: listOf<List<MinTerm4>>()
+    val nonEssentialSolutions : List<List<MinTerm4>> = createNonEssentialSolutions().sortedBy { solutionValue(it)  }
+    val minimalNonEssentialSolution : List<MinTerm4>? = nonEssentialSolutions.getOrNull(0)
 }

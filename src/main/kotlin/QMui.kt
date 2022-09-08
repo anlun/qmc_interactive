@@ -16,6 +16,7 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
+import react.dom.svg.ReactSVG.g
 import react.useState
 
 class QMuiState(paramShows : Array<Boolean> = Array(SHOWS_SIZE) {true})
@@ -280,5 +281,29 @@ val qmUI = FC<QMprops> { props ->
         br {}
         hr {}
         createNonEssentialPrimeImplChartBlock()
+        br {}
+        hr {}
+        console.log(qmTable.nonEssentialSolutions)
+        h3 { +"Non-Essential Solutions" }
+        qmTable.nonEssentialSolutions.forEachIndexed { i, mtl ->
+            createListBlock("${i + 1}) ",
+                mtl.map { it.toABCD() }
+            )
+            br {}
+        }
+        h3 { +"A minimal full solution" }
+        qmTable.essentialPrimeImplicants.forEach {
+            +("${it.toABCD()} + ")
+        }
+        val mnes = qmTable.minimalNonEssentialSolution
+        if (mnes != null) {
+            mnes.forEach {
+                +("${it.toABCD()} + ")
+            }
+        }
+        h3 { +"Initial representation" }
+        qmTable.combine0List.forEach {
+            +("${it.toABCD()} + ")
+        }
     }
 }
