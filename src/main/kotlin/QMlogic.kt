@@ -26,7 +26,7 @@ sealed class Signal {
         when (this) {
             is Dash -> ""
             is One  -> s
-            is Zero -> s + "'"
+            is Zero -> "$s'"
         }
 
     fun toIntRepresentatives() : List<Int> =
@@ -146,8 +146,6 @@ fun String.toIntInMinTerm4Range() : Int? {
         return null
     }
 }
-fun Boolean.toSymbol() : String =
-    if (this) "1" else "0"
 
 class QMtable(val  minTermInput : String
             , val dontCareInput : String) {
@@ -164,7 +162,7 @@ class QMtable(val  minTermInput : String
             s.split(",")
                 .flatMap {
                     val ranges = it.split("-").map { it.trim() }
-                    if (ranges.size == 0) return@flatMap listOf<Int>()
+                    if (ranges.isEmpty()) return@flatMap listOf<Int>()
                     val v0 = ranges[0].toIntInMinTerm4Range() ?: return@flatMap listOf<Int>()
                     if (ranges.size == 1) return@flatMap listOf(v0)
                     val v1 = ranges[1].toIntInMinTerm4Range() ?: return@flatMap listOf<Int>()
@@ -195,19 +193,6 @@ class QMtable(val  minTermInput : String
     val combine3List : List<MinTerm4> = combineListWithItself(combine2List)
     val combine4List : List<MinTerm4> = combineListWithItself(combine3List)
 
-    private fun calculatePrimeImplicants_old() : List<MinTerm4> {
-        val nonCoveredMinTerms : MutableList<Int> = minTermList.toMutableList()
-        val implicants = combine4List + combine3List + combine2List + combine1List + combine0List
-        val result : MutableList<MinTerm4> = MutableList(0) { MinTerm4.fullMinTerm }
-        implicants.forEach { implicant ->
-            val implRepr     = implicant.toIntRepresentatives()
-            if (nonCoveredMinTerms.intersect(implRepr).isNotEmpty()) {
-                nonCoveredMinTerms -= implRepr
-                result.add(implicant)
-            }
-        }
-        return result
-    }
     private fun dontCombineWithOthers(l : List<MinTerm4>) : List<MinTerm4> {
         val result : MutableList<MinTerm4> = l.toMutableList()
         l.forEach { fst ->

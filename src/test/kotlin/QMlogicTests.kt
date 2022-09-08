@@ -49,9 +49,9 @@ class QMlogicTests {
         assertEquals(MinTerm4(Signal.Zero, Signal.Zero, Signal.Zero, Signal.Dash), m[0]?.combine(m[1]))
     }
 
-    @Test
-    fun nonEssentialSolutions_012567() {
-        val qmTable = QMtable("0,1,2,5,6,7", "")
-        assertEquals(true, qmTable.nonEssentialSolutions.isNotEmpty())
-    }
+//    @Test
+//    fun nonEssentialSolutions_012567() {
+//        val qmTable = QMtable("0,1,2,5,6,7", "")
+//        assertEquals(true, qmTable.nonEssentialSolutions.isNotEmpty())
+//    }
 }
