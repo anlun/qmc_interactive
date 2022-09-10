@@ -244,10 +244,12 @@ val qmUI = FC<QMprops> { props ->
             }
         }
         createCombineTable(0, qmTable.combine0List)
-        createCombineTable(1, qmTable.combine1List)
-        createCombineTable(2, qmTable.combine2List)
-        createCombineTable(3, qmTable.combine3List)
-        createCombineTable(4, qmTable.combine4List)
+        if (qmUiState.get(QMuiState.COMBINED_MINTERMS)) {
+            createCombineTable(1, qmTable.combine1List)
+            createCombineTable(2, qmTable.combine2List)
+            createCombineTable(3, qmTable.combine3List)
+            createCombineTable(4, qmTable.combine4List)
+        }
     }
     fun ChildrenBuilder.createListBlock(title : String, l : List<String>) {
         +title
@@ -261,7 +263,7 @@ val qmUI = FC<QMprops> { props ->
         implChart : Set<Pair<Int, MinTerm4>>
     ) {
         val headerList: List<String> =
-            listOf(header_col1, header_col2, "Repr.") + xl.map { "m${it}" }
+            listOf(header_col1, header_col2, "") + xl.map { "m${it}" }
         val columns: List<List<String>> =
             listOf(yl.map { it.toString() },
                 yl.map { it.toABCD() },
@@ -283,7 +285,7 @@ val qmUI = FC<QMprops> { props ->
         val xl = qmTable.minTermList
         val yl = qmTable.primeImplicants
         createImplChartBlock("Prime implicant chart",
-            "Prime Minterms", "Prime Implicants",
+            "", "",
             xl, yl,
             qmTable.primeImplicantChart)
     }
@@ -326,17 +328,14 @@ val qmUI = FC<QMprops> { props ->
             tr {
                 createStateCheckbox("Step 3. Show combined minterms", QMuiState.COMBINED_MINTERMS)
             }
+//            tr {
+//                createStateCheckbox("Step 4. Show minterms representatives", QMuiState.MINTERMS_REPR)
+//            }
             tr {
-                createStateCheckbox("Step 4. Show minterms representatives", QMuiState.MINTERMS_REPR)
+                createStateCheckbox("Step 4. Show prime implicant chart", QMuiState.PRIME_IMPL_TABLE)
             }
             tr {
-                createStateCheckbox("Step 5. Show prime implicants", QMuiState.PRIME_IMPL)
-            }
-            tr {
-                createStateCheckbox("Step 6. Show prime implicant chart", QMuiState.PRIME_IMPL_TABLE)
-            }
-            tr {
-                createStateCheckbox("Step 7. Show final solution", QMuiState.FINAL_SOLUTION)
+                createStateCheckbox("Step 5. Show final solution", QMuiState.FINAL_SOLUTION)
             }
         }
     }
@@ -380,38 +379,46 @@ val qmUI = FC<QMprops> { props ->
             createMinTermsBlock()
         }
     }
-    if (qmUiState.get(QMuiState.PRIME_IMPL)) {
-        br {}
-        hr {}
-        createListBlock("Prime Implicants: ", qmTable.primeImplicants.map { it.toString() })
-    }
+//    if (qmUiState.get(QMuiState.PRIME_IMPL)) {
+//        br {}
+//        hr {}
+//        createListBlock("Prime Implicants: ", qmTable.primeImplicants.map { it.toString() })
+//    }
     if (qmUiState.get(QMuiState.PRIME_IMPL_TABLE)) {
         br {}
         hr {}
         createPrimeImplChartBlock()
         br {}
         hr {}
-        createListBlock("Essential Prime Implicants: ",
-            qmTable.essentialPrimeImplicants.map { it.toABCD() })
-        br {}
-        hr {}
-        createNonEssentialPrimeImplChartBlock()
-        br {}
-        hr {}
-        console.log(qmTable.nonEssentialSolutions)
-        h3 { +"Non-Essential Solutions" }
-        qmTable.nonEssentialSolutions.forEachIndexed { i, mtl ->
-            createListBlock("${i + 1}) ",
-                mtl.map { it.toABCD() }
-            )
+        val epiText = "Essential Prime Implicants: "
+        if (qmTable.essentialPrimeImplicants.isNotEmpty()) {
+            createListBlock(epiText, qmTable.essentialPrimeImplicants.map { it.toABCD() })
+        } else {
+            +"$epiText EMPTY"
+        }
+        if (qmTable.nonEssentialSolutions.isNotEmpty()) {
             br {}
+            hr {}
+            createNonEssentialPrimeImplChartBlock()
+            br {}
+            hr {}
+            h3 { +"Non-Essential Solutions" }
+            qmTable.nonEssentialSolutions.forEachIndexed { i, mtl ->
+                createListBlock("${i + 1}) ",
+                    mtl.map { it.toABCD() }
+                )
+                br {}
+            }
         }
     }
 
     if (qmUiState.get(QMuiState.FINAL_SOLUTION)) {
-        h3 { +"A minimal full solution" }
+        br {}
+        h3 { +"Result"}
+        +"A minimal full solution: "
         +qmTable.minimalFullSolution.map { it.toABCD() }.concatBySeparator(" + ")
-        h3 { +"Initial representation" }
+        br {}
+        +"Initial representation: "
         + (qmTable.initialMinTerms.map { it.toABCD() }.concatBySeparator(" + "))
     }
 }
