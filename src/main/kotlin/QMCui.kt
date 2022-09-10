@@ -484,7 +484,7 @@ val qmUI = FC<QMprops> { props ->
 
     if (qmUiState.get(QMuiState.FINAL_SOLUTION)) {
         br {}
-        h3 { +"Result"}
+        h3 { +"Result" }
         +"A minimal full solution: "
         +qmTable.minimalFullSolution.map { it.toABCD() }.concatBySeparator(" + ")
         br {}
