@@ -7,6 +7,9 @@ import react.ChildrenBuilder
 import react.FC
 import react.Props
 import react.dom.html.InputType
+import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.address
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.button
@@ -15,6 +18,8 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.link
+import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
@@ -70,10 +75,10 @@ external interface QMprops : Props {
     var qmUiState : QMuiState
 }
 val qmUI = FC<QMprops> { props ->
-    var qmTable   by useState(props.qmTable)
+    var qmTable by useState(props.qmTable)
     var lastDontCareInput by useState(props.lastDontCareInput)
     var qmUiState by useState(props.qmUiState)
-    fun ChildrenBuilder.createExampleButton(text : String, qmTable_new : QMtable) {
+    fun ChildrenBuilder.createExampleButton(text: String, qmTable_new: QMtable) {
         button {
             +text
             onClick = { _ ->
@@ -81,7 +86,8 @@ val qmUI = FC<QMprops> { props ->
             }
         }
     }
-    fun ChildrenBuilder.createStateCheckbox(text : String, stateComponent : Int) {
+
+    fun ChildrenBuilder.createStateCheckbox(text: String, stateComponent: Int) {
         input {
             type = InputType.checkbox
             checked = qmUiState.get(stateComponent)
@@ -92,6 +98,7 @@ val qmUI = FC<QMprops> { props ->
         +text
         br {}
     }
+
     fun ChildrenBuilder.createInputBlock() {
         +"f("
         b { +MinTerm4.argString }
@@ -116,10 +123,11 @@ val qmUI = FC<QMprops> { props ->
             +") "
         }
     }
+
     fun TableHTMLAttributes<HTMLTableElement>.tableCss() {
         css {
             display = Display.inlineTable
-            margin  = 20.px
+            margin = 20.px
 //                font - size: 18pt;
             lineHeight = 22.px
             padding = 0.px
@@ -128,9 +136,10 @@ val qmUI = FC<QMprops> { props ->
 //                font - family: "Times New Roman", Georgia, Serif;
         }
     }
-    fun ChildrenBuilder.createTable(header : List<String>, columns : List<List<String>>) {
+
+    fun ChildrenBuilder.createTable(header: List<String>, columns: List<List<String>>) {
         val emptyCellString = ""
-        fun longestColumnSize() : Int {
+        fun longestColumnSize(): Int {
             var maxSize = 0
             columns.forEach { column ->
                 maxSize = kotlin.math.max(maxSize, column.size)
@@ -166,6 +175,7 @@ val qmUI = FC<QMprops> { props ->
             }
         }
     }
+
     fun ChildrenBuilder.createTruthTableBlock() {
         div {
             css {
@@ -189,6 +199,7 @@ val qmUI = FC<QMprops> { props ->
             )
         }
     }
+
     fun ChildrenBuilder.createMinTermsBlock_old() {
         val header = listOf("", "abcd") +
                 if (qmUiState.get(QMuiState.COMBINED_MINTERMS)) {
@@ -198,39 +209,47 @@ val qmUI = FC<QMprops> { props ->
                         } else {
                             listOf()
                         } +
-                        listOf("Combine $it")
+                                listOf("Combine $it")
                     }
                 } else listOf()
-        fun reprCombineColumns(l : List<MinTerm4>) : List<List<String>> {
+
+        fun reprCombineColumns(l: List<MinTerm4>): List<List<String>> {
             return if (qmUiState.get(QMuiState.MINTERMS_REPR)) {
                 listOf(l.map { it.toIntRepresentatives().toString() })
             } else {
                 listOf()
             } + listOf(l.map { it.toString() })
         }
-        val columns : List<List<String>> =
-            listOf( qmTable.combine0List.map { it.toIntRepresentatives().toString() }
-                  , qmTable.combine0List.map { it.toString() }) +
-                if (qmUiState.get(QMuiState.COMBINED_MINTERMS)) {
-                    reprCombineColumns(qmTable.combine1List) +
-                    reprCombineColumns(qmTable.combine2List) +
-                    reprCombineColumns(qmTable.combine3List) +
-                    reprCombineColumns(qmTable.combine4List)
-                } else {
-                   listOf()
-                }
+
+        val columns: List<List<String>> =
+            listOf(qmTable.combine0List.map { it.toIntRepresentatives().toString() },
+                qmTable.combine0List.map { it.toString() }) +
+                    if (qmUiState.get(QMuiState.COMBINED_MINTERMS)) {
+                        reprCombineColumns(qmTable.combine1List) +
+                                reprCombineColumns(qmTable.combine2List) +
+                                reprCombineColumns(qmTable.combine3List) +
+                                reprCombineColumns(qmTable.combine4List)
+                    } else {
+                        listOf()
+                    }
 //        +"MinTerms"
         createTable(header, columns)
     }
+
+    fun MinTerm4.implicantIntReprsString() : String {
+        return toIntRepresentatives().map { it.toString() }.concatBySeparator(",") + ": "
+    }
     fun ChildrenBuilder.createMinTermsBlock() {
-        fun createCombineTable(level : Int, l : List<MinTerm4>) {
+        fun createCombineTable(level: Int, l: List<MinTerm4>) {
             if (l.isEmpty()) return
-            fun reprCombineColumns(l : List<MinTerm4>) : List<List<String>> {
-                val isPrimeImplicant : List<String> = l.map { if (qmTable.primeImplicants.contains(it)) "✓" else "→" }
-                val implicantReprs   : List<String> = l.map { it.toIntRepresentatives().map { it.toString() }.concatBySeparator(",") + ": " }
-                val condImplicantReprs : List<List<String>> = if (qmUiState.get(QMuiState.MINTERMS_REPR)) listOf(implicantReprs) else listOf()
+            fun reprCombineColumns(l: List<MinTerm4>): List<List<String>> {
+                val isPrimeImplicant: List<String> = l.map { if (qmTable.primeImplicants.contains(it)) "✓" else "→" }
+                val implicantReprs: List<String> = l.map { it.implicantIntReprsString() }
+                val condImplicantReprs: List<List<String>> =
+                    if (qmUiState.get(QMuiState.MINTERMS_REPR)) listOf(implicantReprs) else listOf()
                 return condImplicantReprs + listOf(l.map { it.toString() }, isPrimeImplicant)
             }
+
             val header = listOf("", "abcd", "")
             val columns = reprCombineColumns(l)
             div {
@@ -251,23 +270,24 @@ val qmUI = FC<QMprops> { props ->
             createCombineTable(4, qmTable.combine4List)
         }
     }
-    fun ChildrenBuilder.createListBlock(title : String, l : List<String>) {
+
+    fun ChildrenBuilder.createListBlock(title: String, l: List<String>) {
         +title
         +l.concatBySeparator(", ")
     }
+
     fun ChildrenBuilder.createImplChartBlock(
-        header : String,
-        header_col1 : String,
-        header_col2 : String,
-        xl : List<Int>, yl : List<MinTerm4>,
-        implChart : Set<Pair<Int, MinTerm4>>
+        header: String,
+        header_col1: String,
+        header_col2: String,
+        xl: List<Int>, yl: List<MinTerm4>,
+        implChart: Set<Pair<Int, MinTerm4>>
     ) {
         val headerList: List<String> =
-            listOf(header_col1, header_col2, "") + xl.map { "m${it}" }
+            listOf(header_col1, header_col2) + xl.map { "m${it}" } + listOf("")
         val columns: List<List<String>> =
-            listOf(yl.map { it.toString() },
-                yl.map { it.toABCD() },
-                yl.map { it.toIntRepresentatives().toString() }
+            listOf(yl.map { it.implicantIntReprsString() },
+                yl.map { it.toString() },
             ) +
                     xl.map { i ->
                         yl.map { mt ->
@@ -277,26 +297,35 @@ val qmUI = FC<QMprops> { props ->
                                 ""
                             }
                         }
-                    }
-        h3 { +header }
+                    } +
+            listOf(yl.map { it.toABCD() })
+        +header
+        br {}
         createTable(headerList, columns)
     }
+
     fun ChildrenBuilder.createPrimeImplChartBlock() {
         val xl = qmTable.minTermList
         val yl = qmTable.primeImplicants
-        createImplChartBlock("Prime implicant chart",
+        createImplChartBlock(
+            "All prime implicants",
             "", "",
             xl, yl,
-            qmTable.primeImplicantChart)
+            qmTable.primeImplicantChart
+        )
     }
+
     fun ChildrenBuilder.createNonEssentialPrimeImplChartBlock() {
         val xl = qmTable.nonEssentialPrimeImplicantMinTerms
         val yl = qmTable.nonEssentialPrimeImplicants
-        createImplChartBlock("Non-Essential Prime implicant chart",
-            "Non-Essential Prime Minterms", "Non-Essential Prime Implicants",
+        createImplChartBlock(
+            "Non-Essential prime implicants",
+            "", "",
             xl, yl,
-            qmTable.nonEssentialPrimeImplicantChart)
+            qmTable.nonEssentialPrimeImplicantChart
+        )
     }
+
     fun ChildrenBuilder.createDontCareCheckbox() {
         input {
             type = InputType.checkbox
@@ -313,6 +342,7 @@ val qmUI = FC<QMprops> { props ->
         }
         +"Use 'Don't care' values"
     }
+
     fun ChildrenBuilder.createStateControlBlock() {
         table {
             tableCss()
@@ -339,6 +369,7 @@ val qmUI = FC<QMprops> { props ->
             }
         }
     }
+
     fun ChildrenBuilder.createExampleSelectionBlock() {
         table {
             tableCss()
@@ -357,7 +388,29 @@ val qmUI = FC<QMprops> { props ->
         }
     }
 
-    h1 { +"Quine–McCluskey (QMC) algorithm" }
+    h1 { +"Quine–McCluskey (QMC) algorithm, "
+        a { +"podkopaev.net/qmc"
+            href = "https://podkopaev.net"
+        }
+        }
+    div {
+        css {
+            fontSize = FontSize.small
+        }
+        +"An interactive QMC interpreter written by "
+        a {
+            +"Anton Podkopaev"
+            href = "https://podkopaev.net"
+        }
+        + ". "
+        +"Source code of this webpage could be found  "
+        a {
+            +"here"
+            href = "https://github.com/anlun/qmc_interactive"
+        }
+        +"."
+    }
+    br {}
     createInputBlock()
     br {}
     div {
@@ -387,7 +440,25 @@ val qmUI = FC<QMprops> { props ->
     if (qmUiState.get(QMuiState.PRIME_IMPL_TABLE)) {
         br {}
         hr {}
-        createPrimeImplChartBlock()
+        div {
+            css {
+                display = inlineBlock
+            }
+            div {
+                css {
+                    display = inlineBlock
+                }
+                createPrimeImplChartBlock()
+            }
+            if (qmTable.nonEssentialSolutions.isNotEmpty()) {
+                div {
+                    css {
+                        display = inlineBlock
+                    }
+                    createNonEssentialPrimeImplChartBlock()
+                }
+            }
+        }
         br {}
         hr {}
         val epiText = "Essential Prime Implicants: "
@@ -397,9 +468,6 @@ val qmUI = FC<QMprops> { props ->
             +"$epiText EMPTY"
         }
         if (qmTable.nonEssentialSolutions.isNotEmpty()) {
-            br {}
-            hr {}
-            createNonEssentialPrimeImplChartBlock()
             br {}
             hr {}
             h3 { +"Non-Essential Solutions" }
