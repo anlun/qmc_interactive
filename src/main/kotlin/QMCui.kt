@@ -1,5 +1,8 @@
-import csstype.px
+import csstype.*
+import csstype.Display.Companion.block
+import csstype.Display.Companion.inlineBlock
 import emotion.react.css
+import org.w3c.dom.HTMLTableElement
 import react.ChildrenBuilder
 import react.FC
 import react.Props
@@ -8,6 +11,7 @@ import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.input
@@ -17,6 +21,7 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
+import react.dom.html.TableHTMLAttributes
 import react.useState
 
 fun List<String>.concatBySeparator(separator : String) : String {
@@ -111,6 +116,18 @@ val qmUI = FC<QMprops> { props ->
             +") "
         }
     }
+    fun TableHTMLAttributes<HTMLTableElement>.tableCss() {
+        css {
+            display = Display.inlineTable
+            margin  = 20.px
+//                font - size: 18pt;
+            lineHeight = 22.px
+            padding = 0.px
+//                border - collapse: collapse;
+//                border - spacing: 0;
+//                font - family: "Times New Roman", Georgia, Serif;
+        }
+    }
     fun ChildrenBuilder.createTable(header : List<String>, columns : List<List<String>>) {
         val emptyCellString = ""
         fun longestColumnSize() : Int {
@@ -121,13 +138,11 @@ val qmUI = FC<QMprops> { props ->
             return maxSize
         }
         table {
+            tableCss()
             thead {
                 tr {
                     header.forEach {
                         th {
-                            css {
-                                padding = 5.px
-                            }
                             +it
                         }
                     }
@@ -138,9 +153,11 @@ val qmUI = FC<QMprops> { props ->
                     tr {
                         columns.forEach { column ->
                             td {
-                                css {
-                                    padding = 5.px
-                                }
+//                                css {
+//                                    padding = 5.px
+//                                    lineHeight = 15.px
+//                                    overflow = Overflow.hidden
+//                                }
                                 +(column.getOrNull(currentRow) ?: emptyCellString)
                             }
                         }
@@ -150,23 +167,30 @@ val qmUI = FC<QMprops> { props ->
         }
     }
     fun ChildrenBuilder.createTruthTableBlock() {
-        createTable(listOf("N", "Binary N", "f(N)"),
-            listOf( MinTerm4.range.map { it.toString() }
-                  , MinTerm4.range.map { it.toMinTerm4String() }
-                  , MinTerm4.range.map {
-                    if (qmTable.minTermList.contains(it)) {
-                        "1"
-                    } else if (qmTable.dontCareList.contains(it)) {
-                        "undef"
-                    } else {
-                        "0"
+        div {
+            css {
+                display = inlineBlock
+            }
+            +"Truth table"
+            br {}
+            createTable(listOf("", "abcd", "f"),
+                listOf(MinTerm4.range.map { "$it: " },
+                    MinTerm4.range.map { it.toMinTerm4String() },
+                    MinTerm4.range.map {
+                        if (qmTable.minTermList.contains(it)) {
+                            "1"
+                        } else if (qmTable.dontCareList.contains(it)) {
+                            "-"
+                        } else {
+                            "0"
+                        }
                     }
-                }
-                  )
-        )
+                )
+            )
+        }
     }
-    fun ChildrenBuilder.createMinTermsBlock() {
-        val header = listOf("N", "Binary N") +
+    fun ChildrenBuilder.createMinTermsBlock_old() {
+        val header = listOf("", "abcd") +
                 if (qmUiState.get(QMuiState.COMBINED_MINTERMS)) {
                     (1..4).flatMap {
                         if (qmUiState.get(QMuiState.MINTERMS_REPR)) {
@@ -197,6 +221,33 @@ val qmUI = FC<QMprops> { props ->
                 }
 //        +"MinTerms"
         createTable(header, columns)
+    }
+    fun ChildrenBuilder.createMinTermsBlock() {
+        fun createCombineTable(level : Int, l : List<MinTerm4>) {
+            if (l.isEmpty()) return
+            fun reprCombineColumns(l : List<MinTerm4>) : List<List<String>> {
+                val isPrimeImplicant : List<String> = l.map { if (qmTable.primeImplicants.contains(it)) "✓" else "→" }
+                val implicantReprs   : List<String> = l.map { it.toIntRepresentatives().map { it.toString() }.concatBySeparator(",") + ": " }
+                val condImplicantReprs : List<List<String>> = if (qmUiState.get(QMuiState.MINTERMS_REPR)) listOf(implicantReprs) else listOf()
+                return condImplicantReprs + listOf(l.map { it.toString() }, isPrimeImplicant)
+            }
+            val header = listOf("", "abcd", "")
+            val columns = reprCombineColumns(l)
+            div {
+                css {
+                    display = inlineBlock
+                    margin = 20.px
+                }
+                +"Implicants $level-level"
+                br {}
+                createTable(header, columns)
+            }
+        }
+        createCombineTable(0, qmTable.combine0List)
+        createCombineTable(1, qmTable.combine1List)
+        createCombineTable(2, qmTable.combine2List)
+        createCombineTable(3, qmTable.combine3List)
+        createCombineTable(4, qmTable.combine4List)
     }
     fun ChildrenBuilder.createListBlock(title : String, l : List<String>) {
         +title
@@ -244,47 +295,88 @@ val qmUI = FC<QMprops> { props ->
             xl, yl,
             qmTable.nonEssentialPrimeImplicantChart)
     }
-
-    createExampleButton("Ex 1. 7-led A", QMtable("0,2,3,5,6,7,8,9", ""))
-    createExampleButton("Ex 2. Importance of non-essential prime implicants", QMtable("0,1,2,5,6,7", ""))
-    createExampleButton("Ex 3. 7-led A w/ Don't care", QMtable("0,2,3,5,6,7,8,9", "10-15"))
-    br {}
-    input {
-        type = InputType.checkbox
-        checked = qmUiState.get(QMuiState.DONT_CARE)
-        onClick = { event ->
-            qmUiState = qmUiState.set(QMuiState.DONT_CARE, event.currentTarget.checked)
-            if (!event.currentTarget.checked) {
-                lastDontCareInput = qmTable.dontCareInput
-                qmTable = QMtable(qmTable.minTermInput, "")
-            } else if (qmTable.dontCareInput == "") {
-                qmTable = QMtable(qmTable.minTermInput, lastDontCareInput)
+    fun ChildrenBuilder.createDontCareCheckbox() {
+        input {
+            type = InputType.checkbox
+            checked = qmUiState.get(QMuiState.DONT_CARE)
+            onClick = { event ->
+                qmUiState = qmUiState.set(QMuiState.DONT_CARE, event.currentTarget.checked)
+                if (!event.currentTarget.checked) {
+                    lastDontCareInput = qmTable.dontCareInput
+                    qmTable = QMtable(qmTable.minTermInput, "")
+                } else if (qmTable.dontCareInput == "") {
+                    qmTable = QMtable(qmTable.minTermInput, lastDontCareInput)
+                }
+            }
+        }
+        +"Use 'Don't care' values"
+    }
+    fun ChildrenBuilder.createStateControlBlock() {
+        table {
+            tableCss()
+            tr {
+                createDontCareCheckbox()
+            }
+            tr {
+                createStateCheckbox("Step 1. Show the truth table of f", QMuiState.TRUTH_TABLE)
+            }
+            tr {
+                createStateCheckbox("Step 2. Show minterms", QMuiState.MINTERMS)
+            }
+            tr {
+                createStateCheckbox("Step 3. Show combined minterms", QMuiState.COMBINED_MINTERMS)
+            }
+            tr {
+                createStateCheckbox("Step 4. Show minterms representatives", QMuiState.MINTERMS_REPR)
+            }
+            tr {
+                createStateCheckbox("Step 5. Show prime implicants", QMuiState.PRIME_IMPL)
+            }
+            tr {
+                createStateCheckbox("Step 6. Show prime implicant chart", QMuiState.PRIME_IMPL_TABLE)
+            }
+            tr {
+                createStateCheckbox("Step 7. Show final solution", QMuiState.FINAL_SOLUTION)
             }
         }
     }
-    +"Use 'Don't care' values"
-    br {}
-    createStateCheckbox("Step 1. Show the truth table of f", QMuiState.TRUTH_TABLE)
-    createStateCheckbox("Step 2. Show minterms", QMuiState.MINTERMS)
-    createStateCheckbox("Step 3. Show combined minterms", QMuiState.COMBINED_MINTERMS)
-    createStateCheckbox("Step 4. Show minterms representatives", QMuiState.MINTERMS_REPR)
-    createStateCheckbox("Step 5. Show prime implicants", QMuiState.PRIME_IMPL)
-    createStateCheckbox("Step 6. Show prime implicant chart", QMuiState.PRIME_IMPL_TABLE)
-    createStateCheckbox("Step 7. Show final solution", QMuiState.FINAL_SOLUTION)
-    br {}
+    fun ChildrenBuilder.createExampleSelectionBlock() {
+        table {
+            tableCss()
+            tr {
+                +"Example inputs:"
+            }
+            tr {
+                createExampleButton("(1) 7-led A", QMtable("0,2,3,5,6,7,8,9", ""))
+            }
+            tr {
+                createExampleButton("(2) 7-led A w/ Don't care", QMtable("0,2,3,5,6,7,8,9", "10-15"))
+            }
+            tr {
+                createExampleButton("(3) Non-Essential Prime implicant chart", QMtable("0,1,2,5,6,7", ""))
+            }
+        }
+    }
+
+    h1 { +"Quine–McCluskey (QMC) algorithm" }
     createInputBlock()
     br {}
     div {
-//        css {
-//            display = Display.flex
-//        }
+        css {
+            display = inlineBlock
+        }
+        createExampleSelectionBlock()
+        createStateControlBlock()
+    }
+    br {}
+    div {
+        css {
+            display = inlineBlock
+        }
         if (qmUiState.get(QMuiState.TRUTH_TABLE)) {
             createTruthTableBlock()
         }
         if (qmUiState.get(QMuiState.MINTERMS)) {
-            br {}
-            hr {}
-            h3 { +"Minterms" }
             createMinTermsBlock()
         }
     }
