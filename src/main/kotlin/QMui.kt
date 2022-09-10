@@ -17,8 +17,18 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
-import react.dom.svg.ReactSVG.g
 import react.useState
+
+fun List<String>.concatBySeparator(separator : String) : String {
+    if (this.isEmpty()) return ""
+    val sb = StringBuilder(this[0])
+    this.drop(1).forEach { s ->
+        if (s != "") {
+            sb.append(separator, s)
+        }
+    }
+    return sb.toString()
+}
 
 class QMuiState(paramShows : Array<Boolean> = Array(SHOWS_SIZE) {true})
 {
@@ -61,7 +71,7 @@ val qmUI = FC<QMprops> { props ->
     fun ChildrenBuilder.createExampleButton(text : String, qmTable_new : QMtable) {
         button {
             +text
-            onClick = { event ->
+            onClick = { _ ->
                 qmTable = qmTable_new
             }
         }
@@ -190,9 +200,7 @@ val qmUI = FC<QMprops> { props ->
     }
     fun ChildrenBuilder.createListBlock(title : String, l : List<String>) {
         +title
-        l.forEach {
-            +("$it, ")
-        }
+        +l.concatBySeparator(", ")
     }
     fun ChildrenBuilder.createImplChartBlock(
         header : String,
@@ -310,18 +318,8 @@ val qmUI = FC<QMprops> { props ->
 
     if (qmUiState.get(QMuiState.FINAL_SOLUTION)) {
         h3 { +"A minimal full solution" }
-        qmTable.essentialPrimeImplicants.forEach {
-            +("${it.toABCD()} + ")
-        }
-        val mnes = qmTable.minimalNonEssentialSolution
-        if (mnes != null) {
-            mnes.forEach {
-                +("${it.toABCD()} + ")
-            }
-        }
+        +qmTable.minimalFullSolution.map { it.toABCD() }.concatBySeparator(" + ")
         h3 { +"Initial representation" }
-        qmTable.initialMinTerms.forEach {
-            +("${it.toABCD()} + ")
-        }
+        + (qmTable.initialMinTerms.map { it.toABCD() }.concatBySeparator(" + "))
     }
 }

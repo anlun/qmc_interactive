@@ -290,5 +290,6 @@ class QMtable(val  minTermInput : String
             nonEssentialPrimeImplicants)
             ?: listOf<List<MinTerm4>>()
     val nonEssentialSolutions : List<List<MinTerm4>> = createNonEssentialSolutions().sortedBy { solutionValue(it)  }
-    val minimalNonEssentialSolution : List<MinTerm4>? = nonEssentialSolutions.getOrNull(0)
+    val minimalNonEssentialSolution : List<MinTerm4> = nonEssentialSolutions.getOrNull(0) ?: listOf()
+    val minimalFullSolution = essentialPrimeImplicants + minimalNonEssentialSolution
 }
