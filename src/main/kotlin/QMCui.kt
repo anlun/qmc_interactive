@@ -1,5 +1,4 @@
 import csstype.*
-import csstype.Display.Companion.block
 import csstype.Display.Companion.inlineBlock
 import emotion.react.css
 import org.w3c.dom.HTMLTableElement
@@ -7,9 +6,7 @@ import react.ChildrenBuilder
 import react.FC
 import react.Props
 import react.dom.html.InputType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.address
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.button
@@ -18,8 +15,6 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.input
-import react.dom.html.ReactHTML.link
-import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
@@ -82,6 +77,9 @@ val qmUI = FC<QMprops> { props ->
         button {
             +text
             onClick = { _ ->
+                if (qmTable_new.dontCareInput != "") {
+                    qmUiState = qmUiState.set(QMuiState.DONT_CARE, true)
+                }
                 qmTable = qmTable_new
             }
         }
@@ -308,7 +306,7 @@ val qmUI = FC<QMprops> { props ->
         val xl = qmTable.minTermList
         val yl = qmTable.primeImplicants
         createImplChartBlock(
-            "All prime implicants",
+            "All prime implicants' chart",
             "", "",
             xl, yl,
             qmTable.primeImplicantChart
@@ -319,7 +317,7 @@ val qmUI = FC<QMprops> { props ->
         val xl = qmTable.nonEssentialPrimeImplicantMinTerms
         val yl = qmTable.nonEssentialPrimeImplicants
         createImplChartBlock(
-            "Non-Essential prime implicants",
+            "Non-essential prime implicants' chart",
             "", "",
             xl, yl,
             qmTable.nonEssentialPrimeImplicantChart
@@ -388,11 +386,8 @@ val qmUI = FC<QMprops> { props ->
         }
     }
 
-    h1 { +"Quine–McCluskey (QMC) algorithm, "
-        a { +"podkopaev.net/qmc"
-            href = "https://podkopaev.net"
-        }
-        }
+    val qmcInterpreterLink = "podkopaev.net/qmc"
+    h1 { +"Quine–McCluskey (QMC) algorithm" }
     div {
         css {
             fontSize = FontSize.small
@@ -402,7 +397,12 @@ val qmUI = FC<QMprops> { props ->
             +"Anton Podkopaev"
             href = "https://podkopaev.net"
         }
-        + ". "
+        +" and hosted at "
+        a { +qmcInterpreterLink
+            href = "https://$qmcInterpreterLink"
+        }
+        +"."
+        br{}
         +"Source code of this webpage could be found  "
         a {
             +"here"
@@ -470,7 +470,9 @@ val qmUI = FC<QMprops> { props ->
         if (qmTable.nonEssentialSolutions.isNotEmpty()) {
             br {}
             hr {}
-            h3 { +"Non-Essential Solutions" }
+            +"Solutions restricted to non-essential prime implicants:"
+            br {}
+            br {}
             qmTable.nonEssentialSolutions.forEachIndexed { i, mtl ->
                 createListBlock("${i + 1}) ",
                     mtl.map { it.toABCD() }

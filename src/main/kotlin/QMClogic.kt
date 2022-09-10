@@ -264,9 +264,6 @@ class QMtable(val  minTermInput : String
 
     fun calculateNonEssentialSolutions_helper(leftMinTerms : List<Int>, leftImplicants : List<MinTerm4>)
     : List<List<MinTerm4>>? {
-        console.log(leftMinTerms)
-        console.log(leftImplicants)
-        console.log("\n")
         if (leftMinTerms  .isEmpty()) return listOf<List<MinTerm4>>()
         if (leftImplicants.isEmpty()) return null
         val newLeftImplicants = leftImplicants.drop(1)
