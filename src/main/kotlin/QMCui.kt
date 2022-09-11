@@ -11,7 +11,7 @@ import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.input
@@ -35,7 +35,7 @@ fun List<String>.concatBySeparator(separator : String) : String {
     return sb.toString()
 }
 
-class QMuiState(paramShows : Array<Boolean> = Array(SHOWS_SIZE) {true})
+class QMuiState(paramShows : Array<Boolean> = Array(SHOWS_SIZE) {false})
 {
     private var shows: Array<Boolean> =
         if (paramShows.size == SHOWS_SIZE) {
@@ -51,8 +51,8 @@ class QMuiState(paramShows : Array<Boolean> = Array(SHOWS_SIZE) {true})
         const val MINTERMS = 2
         const val COMBINED_MINTERMS = 3
         const val MINTERMS_REPR = 4
-        const val PRIME_IMPL = 5
-        const val PRIME_IMPL_TABLE = 6
+        const val PRIME_IMPL_CHART = 5
+        const val NON_ESS_PRIME_IMPL_CHART = 6
         const val FINAL_SOLUTION = 7
     }
 
@@ -360,10 +360,13 @@ val qmUI = FC<QMprops> { props ->
 //                createStateCheckbox("Step 4. Show minterms representatives", QMuiState.MINTERMS_REPR)
 //            }
             tr {
-                createStateCheckbox("Step 4. Show prime implicant chart", QMuiState.PRIME_IMPL_TABLE)
+                createStateCheckbox("Step 4. Show prime implicants' chart", QMuiState.PRIME_IMPL_CHART)
             }
             tr {
-                createStateCheckbox("Step 5. Show final solution", QMuiState.FINAL_SOLUTION)
+                createStateCheckbox("Step 5. Show non-essential prime implicants' chart", QMuiState.NON_ESS_PRIME_IMPL_CHART)
+            }
+            tr {
+                createStateCheckbox("Step 6. Show final solution", QMuiState.FINAL_SOLUTION)
             }
         }
     }
@@ -387,7 +390,7 @@ val qmUI = FC<QMprops> { props ->
     }
 
     val qmcInterpreterLink = "podkopaev.net/qmc"
-    h1 { +"Quine–McCluskey (QMC) algorithm" }
+    h2 { +"Quine–McCluskey (QMC) algorithm" }
     div {
         css {
             fontSize = FontSize.small
@@ -437,28 +440,29 @@ val qmUI = FC<QMprops> { props ->
 //        hr {}
 //        createListBlock("Prime Implicants: ", qmTable.primeImplicants.map { it.toString() })
 //    }
-    if (qmUiState.get(QMuiState.PRIME_IMPL_TABLE)) {
-        br {}
-        hr {}
-        div {
-            css {
-                display = inlineBlock
-            }
+    br {}
+    div {
+        css {
+            display = inlineBlock
+        }
+        if (qmUiState.get(QMuiState.PRIME_IMPL_CHART)) {
             div {
                 css {
                     display = inlineBlock
                 }
                 createPrimeImplChartBlock()
             }
-            if (qmTable.nonEssentialSolutions.isNotEmpty()) {
-                div {
-                    css {
-                        display = inlineBlock
-                    }
-                    createNonEssentialPrimeImplChartBlock()
+        }
+        if (qmTable.nonEssentialSolutions.isNotEmpty() && qmUiState.get(QMuiState.NON_ESS_PRIME_IMPL_CHART)) {
+            div {
+                css {
+                    display = inlineBlock
                 }
+                createNonEssentialPrimeImplChartBlock()
             }
         }
+    }
+    if (qmUiState.get(QMuiState.PRIME_IMPL_CHART)) {
         br {}
         hr {}
         val epiText = "Essential Prime Implicants: "
@@ -467,18 +471,18 @@ val qmUI = FC<QMprops> { props ->
         } else {
             +"$epiText EMPTY"
         }
-        if (qmTable.nonEssentialSolutions.isNotEmpty()) {
+    }
+    if (qmTable.nonEssentialSolutions.isNotEmpty() && qmUiState.get(QMuiState.NON_ESS_PRIME_IMPL_CHART)) {
+        br {}
+        hr {}
+        +"Solutions restricted to non-essential prime implicants:"
+        br {}
+        br {}
+        qmTable.nonEssentialSolutions.forEachIndexed { i, mtl ->
+            createListBlock("${i + 1}) ",
+                mtl.map { it.toABCD() }
+            )
             br {}
-            hr {}
-            +"Solutions restricted to non-essential prime implicants:"
-            br {}
-            br {}
-            qmTable.nonEssentialSolutions.forEachIndexed { i, mtl ->
-                createListBlock("${i + 1}) ",
-                    mtl.map { it.toABCD() }
-                )
-                br {}
-            }
         }
     }
 
