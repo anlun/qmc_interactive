@@ -464,10 +464,6 @@ val qmUI = FC<QMprops> { props ->
         +"."
     }
     br {}
-    createInputBlock()
-    br {}
-    createDontCareCheckbox()
-    br {}
     div {
         css {
             display = inlineBlock
@@ -475,6 +471,11 @@ val qmUI = FC<QMprops> { props ->
         createExampleSelectionBlock()
 //        createStateControlBlock()
     }
+    br {}
+    createDontCareCheckbox()
+    br {}
+    br {}
+    createInputBlock()
     br {}
     div {
         css {
